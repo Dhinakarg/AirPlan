@@ -3,6 +3,7 @@
 import pytest
 from starlette.testclient import TestClient
 
+from app.api.middleware import reset_rate_limiter
 from app.engine.models import (
     Activity,
     HomeProfile,
@@ -12,6 +13,12 @@ from app.engine.models import (
     RoutineBlock,
 )
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def clean_rate_limiter() -> None:
+    """Reset rate limiter state before each test."""
+    reset_rate_limiter()
 
 
 @pytest.fixture

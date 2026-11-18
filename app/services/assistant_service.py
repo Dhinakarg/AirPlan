@@ -8,6 +8,7 @@ from app.ai.guards import build_injection_refusal, looks_like_injection, sanitiz
 from app.ai.prompts import format_user_prompt
 from app.ai.provider import AssistantProvider, get_assistant_provider
 from app.ai.validator import substitute_payload, validate_assistant_output
+from app.engine.safety_rules import detect_red_flags
 from app.errors import AIError
 
 logger = logging.getLogger(__name__)
@@ -57,3 +58,40 @@ def generate_clean_air_advice(
         payload = get_fallback_payload(lang)
 
     return substitute_payload(payload, facts)
+
+
+def ask_assistant(
+    question: str,
+    facts: dict[str, Any] | None = None,
+    lang: str = "en",
+    provider: AssistantProvider | None = None,
+) -> dict[str, Any]:
+    """Process user query through clinical red-flag triage, injection guards, and AI.
+
+    Args:
+        question: User inquiry string.
+        facts: Optional ground-truth domain facts dictionary.
+        lang: Target language code ('en' or 'hi').
+        provider: Optional explicit AssistantProvider.
+
+    Returns:
+        Structured response dictionary.
+    """
+    red_flag = detect_red_flags(question)
+    if red_flag is not None:
+        return {
+            "is_red_flag": True,
+            "red_flag": red_flag.model_dump(),
+            "summary": "MEDICAL EMERGENCY: Immediate clinical attention required.",
+            "tips": [
+                "Do not wait for air quality changes or ambient improvements.",
+                "Call emergency medical services immediately or visit emergency room.",
+            ],
+            "answer": (
+                f"CRITICAL: {red_flag.action.upper()}. "
+                f"Detected symptom: '{red_flag.symptom}'. "
+                "This directive strictly overrides all air quality guidance."
+            ),
+        }
+
+    return generate_clean_air_advice(question, facts or {}, lang=lang, provider=provider)
