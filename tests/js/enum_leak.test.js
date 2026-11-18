@@ -96,10 +96,10 @@ test('enum leaks: rendered Family & Home screen never displays underscore-separa
 
   const fullText = container.getAllText();
 
-  // 1. Must specifically render "Aarav · Child · Asthma or heart condition"
+  // 1. Must specifically render name on line one and "Child · Asthma or heart condition" on line two
   assert.ok(
-    fullText.includes('Aarav · Child · Asthma or heart condition'),
-    'Member card must render "Aarav · Child · Asthma or heart condition"'
+    fullText.includes('Aarav') && fullText.includes('Child · Asthma or heart condition'),
+    'Member card must render "Aarav" and line two "Child · Asthma or heart condition"'
   );
 
   // 2. Must not render "[child, asthma_or_heart]"

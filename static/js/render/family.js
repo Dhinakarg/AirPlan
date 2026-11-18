@@ -13,10 +13,8 @@ function el(tag, cls = '', text = '') {
 }
 
 function field(id, labelText, control, helpText) {
-  const f = el('div', 'field');
-  const lbl = el('label', '', labelText);
-  lbl.htmlFor = id;
-  control.id = id;
+  const f = el('div', 'field'), lbl = el('label', '', labelText);
+  lbl.htmlFor = control.id = id;
   f.append(lbl, control);
   if (helpText) {
     const s = el('small', 'help-text', helpText);
@@ -37,27 +35,20 @@ function opt(val, text, selected = false) {
 
 export function renderFamilyScreen(container) {
   container.replaceChildren();
-  const s = getState();
-  const lang = s.language;
-
-  const title = el('h2', '', t('planningForTitle', lang));
-  const counter = el('p', 'member-counter', `${s.members.length} of 6 members`);
-  container.append(title, counter);
+  const s = getState(), lang = s.language;
+  const layout = el('div', 'step-layout'), mainCol = el('div', 'step-main');
+  mainCol.append(el('h2', '', t('planningForTitle', lang)), el('p', 'member-counter', `${s.members.length} of 6 members`));
 
   // Card 1: Who lives here
-  const c1 = el('div', 'card');
+  const c1 = el('div', 'card'), memList = el('div', 'member-list');
   c1.appendChild(el('h3', '', t('whoLivesHere', lang)));
-  const memList = el('div', 'member-list');
 
   s.members.forEach((m, idx) => {
-    const card = el('div', 'member-card');
-    const info = el('div', 'member-info');
+    const card = el('div', 'member-card'), info = el('div', 'member-info');
     const av = el('span', 'avatar-circle', (m.name || 'M').charAt(0).toUpperCase());
     av.setAttribute('aria-hidden', 'true');
-
     const det = el('div', 'member-details');
-    const sub = el('span', 'member-sublabel', `${m.name} · ${labelFor('ageGroup', m.age_group, lang)} · ${labelFor('sensitivity', m.sensitivity, lang)}`);
-    det.append(el('span', 'member-name', m.name), sub);
+    det.append(el('span', 'member-name', m.name), el('span', 'member-sublabel', `${labelFor('ageGroup', m.age_group, lang)} · ${labelFor('sensitivity', m.sensitivity, lang)}`));
     info.append(av, det);
     card.appendChild(info);
 
@@ -77,45 +68,32 @@ export function renderFamilyScreen(container) {
   c1.appendChild(memList);
 
   if (s.members.length < 6) {
-    const nameIn = el('input');
+    const nameIn = el('input'), ageSel = el('select'), sensSel = el('select');
     nameIn.type = 'text';
     nameIn.placeholder = 'e.g. Priyo';
-
-    const ageSel = el('select');
     ['toddler', 'child', 'teen', 'adult', 'senior'].forEach((a) => ageSel.appendChild(opt(a, labelFor('ageGroup', a, lang), a === 'adult')));
-
-    const sensSel = el('select');
     ['none', 'asthma_or_heart', 'pregnant'].forEach((k) => sensSel.appendChild(opt(k, labelFor('sensitivity', k, lang))));
 
     const addBtn = el('button', 'btn btn-secondary', `+ ${t('addMember', lang)}`);
     addBtn.type = 'button';
     addBtn.addEventListener('click', () => {
       const val = nameIn.value.trim() || `Member ${s.members.length + 1}`;
-      setState({
-        members: [...s.members, { name: val, age_group: ageSel.value, sensitivity: sensSel.value, routine: JSON.parse(JSON.stringify(s.members[0].routine)) }],
-      });
+      setState({ members: [...s.members, { name: val, age_group: ageSel.value, sensitivity: sensSel.value, routine: JSON.parse(JSON.stringify(s.members[0].routine)) }] });
     });
 
-    const r1 = el('div', 'field-row');
+    const r1 = el('div', 'field-row'), r2 = el('div', 'field-row'), wrap = el('div', 'field');
     r1.append(field('new-member-name', t('memberName', lang), nameIn, 'Name or nickname'), field('new-member-age', t('ageGroup', lang), ageSel, 'Age category'));
-
-    const r2 = el('div', 'field-row');
-    const wrap = el('div', 'field');
     wrap.appendChild(addBtn);
-    r2.append(field('new-member-sens', t('sensitivity', lang), sensSel, 'Respiratory sensitivity'), wrap);
+    r2.append(field('new-member-sens', t('sensitivity', lang), sensSel, 'Respiratory health needs'), wrap);
     c1.append(r1, r2);
   }
-  container.appendChild(c1);
+  mainCol.appendChild(c1);
 
   // Card 2: Your home
-  const c2 = el('div', 'card');
+  const c2 = el('div', 'card'), leakSel = el('select'), citySel = el('select');
   c2.appendChild(el('h3', '', t('yourHome', lang)));
-
-  const leakSel = el('select');
   ['tight', 'average', 'leaky'].forEach((l) => leakSel.appendChild(opt(l, labelFor('leakiness', l, lang), l === s.home.leakiness)));
   leakSel.addEventListener('change', (e) => setState({ home: { ...s.home, leakiness: e.target.value } }));
-
-  const citySel = el('select');
   Object.entries(PRESET_CITIES).forEach(([k, c]) => citySel.appendChild(opt(k, `${c.name} (${c.lat}, ${c.lon})`, k === s.city)));
   citySel.addEventListener('change', (e) => {
     const d = PRESET_CITIES[e.target.value];
@@ -125,12 +103,9 @@ export function renderFamilyScreen(container) {
   const homeRow = el('div', 'field-row');
   homeRow.append(field('home-leakiness-select', t('draughtyQuestion', lang), leakSel, 'Affects outdoor smoke infiltration'), field('city-preset-select', t('cityPreset', lang), citySel, 'Forecast location for smog calculations'));
 
-  const pF = el('div', 'field');
-  const pLbl = el('label', '', ` ${t('purifier', lang)}`);
-  pLbl.htmlFor = 'home-purifier-chk';
-  const pChk = el('input');
+  const pF = el('div', 'field'), pLbl = el('label', '', ` ${t('purifier', lang)}`), pChk = el('input');
+  pLbl.htmlFor = pChk.id = 'home-purifier-chk';
   pChk.type = 'checkbox';
-  pChk.id = 'home-purifier-chk';
   pChk.checked = s.home.purifier;
   pChk.addEventListener('change', (e) => setState({ home: { ...s.home, purifier: e.target.checked } }));
   pLbl.prepend(pChk);
@@ -139,26 +114,22 @@ export function renderFamilyScreen(container) {
   pChk.setAttribute('aria-describedby', pHelp.id);
   pF.append(pLbl, pHelp);
   c2.append(homeRow, pF);
-  container.appendChild(c2);
+  mainCol.appendChild(c2);
 
   // Card 3: Your budget
-  const c3 = el('div', 'card');
+  const c3 = el('div', 'card'), bF = el('div', 'field'), bRow = el('div', 'field-row');
   c3.appendChild(el('h3', '', t('yourBudget', lang)));
-
-  const bF = el('div', 'field');
   const bLbl = el('label', '', `₹${s.budgetInr} per month`);
   bLbl.htmlFor = 'budget-slider';
   bLbl.id = 'budget-amount-label';
 
-  const bRow = el('div', 'field-row');
-  const bRange = el('input');
+  const bRange = el('input'), bNum = el('input');
   bRange.type = 'range';
   bRange.id = 'budget-slider';
   bRange.min = '0';
   bRange.max = '20000';
   bRange.step = '100';
   bRange.value = String(s.budgetInr);
-  const bNum = el('input');
   bNum.type = 'number';
   bNum.id = 'budget-number';
   bNum.min = '0';
@@ -182,13 +153,29 @@ export function renderFamilyScreen(container) {
   bRow.append(bRange, bNum);
   bF.append(bLbl, bRow, bHelp);
   c3.append(bF);
-  container.appendChild(c3);
+  mainCol.appendChild(c3);
 
-  // Primary button at bottom
-  const navDiv = el('div', 'form-actions');
+  // Actions row (right aligned, no wrapping card)
+  const actions = el('div', 'actions');
   const nextBtn = el('button', 'btn primary btn-primary', t('nextYourDay', lang));
   nextBtn.type = 'button';
   nextBtn.id = 'next-to-ledger-btn';
-  navDiv.appendChild(nextBtn);
-  container.appendChild(navDiv);
+  actions.appendChild(nextBtn);
+  mainCol.appendChild(actions);
+
+  layout.appendChild(mainCol);
+
+  // Aside: Sticky "Your household" summary card
+  const aside = el('aside', 'step-aside'), sumCard = el('div', 'card summary-card'), dl = el('dl', 'summary-list');
+  sumCard.appendChild(el('h3', '', t('yourHousehold', lang)));
+  const addItem = (dt, dd) => { const it = el('div', 'summary-item'); it.append(el('dt', '', dt), el('dd', '', dd)); dl.appendChild(it); };
+  addItem('Members', `${s.members.length} of 6`);
+  addItem('Home type', labelFor('leakiness', s.home.leakiness, lang));
+  addItem('City', PRESET_CITIES[s.city]?.name.split(' (')[0] || s.city);
+  addItem('Budget', `₹${s.budgetInr} / mo`);
+  sumCard.append(dl, el('p', 'summary-hint', t('hintNextRoutine', lang)));
+  aside.appendChild(sumCard);
+  layout.appendChild(aside);
+
+  container.appendChild(layout);
 }

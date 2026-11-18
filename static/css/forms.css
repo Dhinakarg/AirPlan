@@ -12,14 +12,15 @@
 }
 body { background: var(--bg); color: var(--text);
   font: 400 1rem/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-main { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+main { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 0 64px; }
 main h2 { font-size: 1.5rem; font-weight: 600; margin: 0 0 8px; }
 main p, main small { color: var(--muted); }
 
-main fieldset, main section > div, main .card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 16px; margin: 0 0 16px;
-}
+/* stop double-carding: only the cards the markup marks as cards */
+main section > div { background: none; border: 0; padding: 0; margin: 0; }
+main .card, main fieldset { background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin: 0 0 16px; }
+
 main label { display: block; font-weight: 600; margin: 16px 0 6px; }
 main input[type="text"], main input[type="number"], main select, main textarea {
   display: block; width: 100%; min-height: 44px; padding: 8px 12px;
@@ -46,20 +47,27 @@ main button.ghost { background: transparent; border-color: transparent;
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
-
-
-main { max-width: 1120px; }
-
-/* stop double-carding: only the cards the markup marks as cards */
-main section > div { background: none; border: 0; padding: 0; margin: 0; }
-main .card, main fieldset { background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px; margin: 0 0 16px; }
-
 /* two-column layout on desktop: form cards left, live summary right */
 @media (min-width: 960px) {
   .step-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px;
     gap: 24px; align-items: start; }
   .step-aside { position: sticky; top: 24px; }
+  .plan-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px; }
+  .grid-col-12 { grid-column: span 12; }
+  .grid-col-4 { grid-column: span 4; }
+}
+@media (max-width: 959px) {
+  .step-layout { display: flex; flex-direction: column; gap: 20px; }
+  .plan-grid { display: flex; flex-direction: column; gap: 16px; }
 }
 
 main .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+
+/* Sticky Household summary card details */
+.summary-card { display: flex; flex-direction: column; gap: 12px; }
+.summary-card h3 { margin: 0 0 4px; font-size: 1.125rem; font-weight: 600; color: var(--text); }
+.summary-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.9375rem; }
+.summary-item:last-of-type { border-bottom: none; }
+.summary-item dt { color: var(--muted); font-weight: 400; margin: 0; }
+.summary-item dd { color: var(--text); font-weight: 600; margin: 0; }
+.summary-hint { margin: 8px 0 0; padding: 10px 12px; background: var(--bg); border-radius: 8px; font-size: 0.875rem; color: var(--muted); border-left: 3px solid var(--accent); }

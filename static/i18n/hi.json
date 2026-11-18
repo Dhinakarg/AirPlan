@@ -121,7 +121,7 @@
   "removeMember": "हटाएं",
   "resultsTitle": "योजना परिणाम और जोखिम बहीखाता",
   "secondaryToolsHeading": "स्वच्छ हवा के अन्य साधन",
-  "sensitivity": "स्वास्थ्य संवेदनशीलता",
+  "sensitivity": "स्वास्थ्य ज़रूरतें",
   "settingsDialogTitle": "प्रदर्शन और सुगमता सेटिंग्स",
   "setUpFamily": "मेरा परिवार जोड़ें",
   "siteTagline": "घरेलू स्वच्छ हवा और स्मॉग सुरक्षा योजना",
@@ -152,5 +152,7 @@
   "whoLivesHere": "यहाँ कौन रहता है",
   "yourHome": "आपका घर",
   "yourBudget": "आपका बजट",
-  "nextYourDay": "आगे: अपनी दिनचर्या"
+  "nextYourDay": "आगे: अपनी दिनचर्या",
+  "yourHousehold": "आपका परिवार",
+  "hintNextRoutine": "आगे: 24 घंटे के जोखिम के लिए दैनिक दिनचर्या सेट करें।"
 }

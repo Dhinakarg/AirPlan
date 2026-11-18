@@ -121,7 +121,7 @@
   "removeMember": "Remove",
   "resultsTitle": "Plan Results & Exposure Ledger",
   "secondaryToolsHeading": "More clean-air tools",
-  "sensitivity": "Vulnerability",
+  "sensitivity": "Health needs",
   "settingsDialogTitle": "Display & Accessibility Settings",
   "setUpFamily": "Set up my family",
   "siteTagline": "Household Clean-Air Exposure & Intervention Planner",
@@ -152,5 +152,7 @@
   "whoLivesHere": "Who lives here",
   "yourHome": "Your home",
   "yourBudget": "Your budget",
-  "nextYourDay": "Next: your day"
+  "nextYourDay": "Next: your day",
+  "yourHousehold": "Your household",
+  "hintNextRoutine": "Next: set daily routine for hour-by-hour exposure."
 }

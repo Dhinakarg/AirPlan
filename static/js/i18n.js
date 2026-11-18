@@ -77,6 +77,7 @@ export const DICTIONARY = {
   heroHeadline: { en: 'Personal clean-air planning for winter smog.', hi: 'सर्दियों के स्मॉग में आपके परिवार के लिए स्वच्छ हवा योजना।' },
   heroSubhead: { en: 'Plan your family\'s day hour-by-hour, detect indoor pollution sources, and rank low-cost clean air steps with proven impact.', hi: 'प्रति घंटा जोखिम की गणना करें, घर के प्रदूषण स्रोत पहचानें, और कम खर्च वाले असरदार उपाय चुनें।' },
   highContrast: { en: 'High Contrast', hi: 'उच्च कंट्रास्ट' },
+  hintNextRoutine: { en: 'Next: set daily routine for hour-by-hour exposure.', hi: 'आगे: 24 घंटे के जोखिम के लिए दैनिक दिनचर्या सेट करें।' },
   illustrative: { en: 'illustrative', hi: 'संकेतक' },
   impactReceipt: { en: 'Impact Receipt', hi: 'प्रभाव रसीद (Impact Receipt)' },
   incense: { en: 'Incense / Agarbatti', hi: 'अगरबत्ती / धूप' },
@@ -126,7 +127,7 @@ export const DICTIONARY = {
   removeMember: { en: 'Remove', hi: 'हटाएं' },
   resultsTitle: { en: 'Plan Results & Exposure Ledger', hi: 'योजना परिणाम और जोखिम बहीखाता' },
   secondaryToolsHeading: { en: 'More clean-air tools', hi: 'स्वच्छ हवा के अन्य साधन' },
-  sensitivity: { en: 'Vulnerability', hi: 'स्वास्थ्य संवेदनशीलता' },
+  sensitivity: { en: 'Health needs', hi: 'स्वास्थ्य ज़रूरतें' },
   setUpFamily: { en: 'Set up my family', hi: 'मेरा परिवार जोड़ें' },
   settingsDialogTitle: { en: 'Display & Accessibility Settings', hi: 'प्रदर्शन और सुगमता सेटिंग्स' },
   siteTagline: { en: 'Household Clean-Air Exposure & Intervention Planner', hi: 'घरेलू स्वच्छ हवा और स्मॉग सुरक्षा योजना' },
@@ -156,6 +157,7 @@ export const DICTIONARY = {
   worstTimeOutdoor: { en: 'Worst time to go outside', hi: 'बाहर जाने का सबसे खराब समय' },
   yourBudget: { en: 'Your budget', hi: 'आपका बजट' },
   yourHome: { en: 'Your home', hi: 'आपका घर' },
+  yourHousehold: { en: 'Your household', hi: 'आपका परिवार' },
 };
 
 export function t(key, lang = 'en') {

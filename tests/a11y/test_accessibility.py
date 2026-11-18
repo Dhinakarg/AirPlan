@@ -244,3 +244,9 @@ def test_table_has_caption_and_th_scopes(client: TestClient) -> None:
         assert len(parser.table_th_scopes) > 0
         for scope in parser.table_th_scopes:
             assert scope in ("col", "row")
+
+
+def test_step_layout_exists_in_served_html(client: TestClient) -> None:
+    """Verify that .step-layout container exists in served index.html."""
+    html = _get_served_html(client)
+    assert "step-layout" in html
