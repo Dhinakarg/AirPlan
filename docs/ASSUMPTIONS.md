@@ -19,3 +19,4 @@ AirLedger pairs all domain calculations with explicit provenance metadata and co
 - **Corsi-Rosenthal Box Purifier**: Clean Air Delivery Rate (CADR) of $220\,\text{m}^3/\text{h}$ at estimated ₹2,500 material cost. (Confidence: `high`)
 - **Weatherstripping Foam & Draft Guards**: Estimated ₹350 material cost with $35\%$ infiltration reduction. (Confidence: `medium`)
 - **N95 Respirators**: $90\%$ particle reduction during transit/outdoor exposure at ₹250 per 5-pack. (Confidence: `high`)
+

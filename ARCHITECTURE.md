@@ -36,3 +36,4 @@ graph TD
 3. **Domain Constants & Provenance**:
    - All physical parameters, regulatory thresholds (WHO 15 $\mu\text{g/m}^3$, Indian NAAQS 60 $\mu\text{g/m}^3$), emission rates, and costs live in `app/constants.py` as typed constants with units.
    - Every domain output quantity carries a `Provenance` (stated assumption and confidence rating: `low` | `medium` | `high`).
+

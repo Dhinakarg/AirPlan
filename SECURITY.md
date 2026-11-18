@@ -27,3 +27,4 @@ Please do not report security vulnerabilities through public GitHub issues. Inst
 4. **Resource Protection & Rate Limiting**:
    - In-memory sliding-window rate limiting prevents denial-of-service abuse per client IP.
    - Generic JSON error envelopes with unique `correlation_id` values prevent stack trace leaks.
+

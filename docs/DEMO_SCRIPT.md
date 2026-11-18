@@ -23,3 +23,4 @@ A 3-minute guided walkthrough of AirLedger capabilities for winter smog mitigati
 - **Action**: Inspect the "Ranked Low-Cost Interventions" checklist. Toggle on the "DIY Box Fan Purifier (Corsi-Rosenthal)" and "Envelope Sealing".
 - **Narrative**: Watch the 24-hour diurnal chart and accessible data table immediately recalculate, showing significant drops in inhaled particulate dose.
 - **Visuals**: Compare baseline vs. mitigated lines on the hourly timeline and individual family member cards (infant, elderly).
+

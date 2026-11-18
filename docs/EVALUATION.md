@@ -14,3 +14,4 @@ This document outlines the evaluation framework for AirLedger's clean-air recomm
 
 ## 3. Intervention Cost-Effectiveness
 - **$\Delta\text{PM}_{2.5} / \text{Cost}$ Ratio**: Micrograms per cubic meter reduction per 100 INR spent on low-cost mitigations (e.g. Corsi-Rosenthal boxes, weatherstripping, N95 masks).
+

@@ -14,3 +14,4 @@ test('frontend smoke test: verify i18n dictionary functions', async () => {
   assert.equal(typeof i18nModule.t, 'function');
   assert.equal(i18nModule.t('siteTitle', 'en'), 'AirLedger');
 });
+
