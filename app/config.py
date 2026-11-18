@@ -1,5 +1,7 @@
 """Application configuration and validated runtime settings."""
 
+from functools import lru_cache
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -24,4 +26,10 @@ class Settings(BaseSettings):
     cors_origins: str = Field(default="*", description="Allowed CORS origins")
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    """Retrieve cached singleton application runtime settings."""
+    return Settings()
+
+
+settings = get_settings()

@@ -26,5 +26,13 @@ class SimulationError(AirLedgerError):
     """Raised when aerosol or exposure calculation fails."""
 
 
+class AirDataError(AirLedgerError):
+    """Raised when air quality data fetching or parsing fails."""
+
+
+class AIError(AirLedgerError):
+    """Raised when GenAI response generation or validation fails."""
+
+
 class NotFoundError(AirLedgerError):
     """Raised when a requested resource is not found."""

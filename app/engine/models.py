@@ -96,6 +96,7 @@ class HourlyAir(BaseModel):
         ge=0.0,
         description="Atmospheric boundary layer height in meters, if available",
     )
+    source: str = Field(default="live", description="Data provenance: 'live' or 'sample'")
 
 
 ConfidenceLevel: TypeAlias = Literal["low", "medium", "high"]
