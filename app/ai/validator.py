@@ -51,39 +51,23 @@ def _is_text_safe(text: str) -> bool:
     return not bool(DIGIT_REGEX.search(text_without_placeholders))
 
 
+def _has_safe_payload_texts(payload: AssistantPayload) -> bool:
+    """Verify that all summary, answer, and tip fields conform to safety regex rules."""
+    if not _is_text_safe(payload.summary) or not _is_text_safe(payload.answer):
+        return False
+    return all(_is_text_safe(tip) for tip in payload.tips)
+
+
 def validate_assistant_output(raw_output: str) -> AssistantPayload | None:
-    """Validate LLM output against rigid schema, placeholder, and anti-hallucination rules.
-
-    Rejects any output containing:
-    - Digits outside of allowed {{placeholder}} tags
-    - Unknown placeholder names
-    - URLs or domain links
-    - Markup / HTML / XML tags
-
-    Args:
-        raw_output: Raw text string received from the LLM provider.
-
-    Returns:
-        AssistantPayload instance if valid, or None if rejected.
-    """
+    """Validate LLM output against schema, placeholder, and anti-hallucination rules."""
     if not raw_output or not raw_output.strip():
         return None
-
     try:
         data = json.loads(raw_output.strip())
         payload = AssistantPayload.model_validate(data)
     except (json.JSONDecodeError, ValidationError):
         return None
-
-    if not _is_text_safe(payload.summary):
-        return None
-    if not _is_text_safe(payload.answer):
-        return None
-    for tip in payload.tips:
-        if not _is_text_safe(tip):
-            return None
-
-    return payload
+    return payload if _has_safe_payload_texts(payload) else None
 
 
 def _replace_placeholders(text: str, values: dict[str, Any]) -> str:

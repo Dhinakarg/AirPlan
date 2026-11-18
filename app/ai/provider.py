@@ -1,7 +1,7 @@
 """Provider protocol and client implementations for clean-air assistance."""
 
 import logging
-from typing import Final, Protocol
+from typing import Any, Final, Protocol
 
 import httpx
 
@@ -64,30 +64,26 @@ class GeminiProvider:
             raise AIError("Gemini API key is missing or unconfigured.")
         self._client = client
 
+    @staticmethod
+    def _extract_candidate_text(data: dict[str, Any]) -> str:
+        """Extract first candidate part text from Gemini response body."""
+        candidates = data.get("candidates", [])
+        if not candidates:
+            raise AIError("Gemini returned empty candidates list.")
+        return str(candidates[0]["content"]["parts"][0]["text"])
+
     def generate(self, prompt: str) -> str:
-        """Execute remote generation request against Gemini endpoints.
-
-        Args:
-            prompt: Formatted prompt string.
-
-        Returns:
-            Raw response text from Gemini.
-        """
+        """Execute remote generation request against Gemini endpoints."""
         params = {"key": self.api_key}
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"},
         }
-
         http = self._client or httpx.Client(timeout=GEMINI_TIMEOUT_SECONDS)
         try:
             resp = http.post(GEMINI_API_URL, params=params, json=payload)
             resp.raise_for_status()
-            data = resp.json()
-            candidates = data.get("candidates", [])
-            if not candidates:
-                raise AIError("Gemini returned empty candidates list.")
-            return str(candidates[0]["content"]["parts"][0]["text"])
+            return self._extract_candidate_text(resp.json())
         except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError) as exc:
             raise AIError(f"Gemini API generation failed: {exc}") from exc
         finally:

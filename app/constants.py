@@ -155,3 +155,18 @@ RED_FLAG_OVERRIDE_ACTION: Final[str] = "seek medical care now"
 # Unit: Characters (text lookback and lookahead scanning windows for clinical symptom negation)
 RED_FLAG_NEGATION_WINDOW_CHARS_EN: Final[int] = 30
 RED_FLAG_NEGATION_WINDOW_CHARS_HI: Final[int] = 25
+
+# --- Request Security and Rate Limiting ---
+MAX_REQUEST_SIZE_BYTES: Final[int] = 100_000
+RATE_LIMIT_WINDOW_SECONDS: Final[float] = 60.0
+
+# --- Atmospheric Data Client Configuration ---
+AIR_QUALITY_BASE_URL: Final[str] = "https://air-quality-api.open-meteo.com/v1/air-quality"
+WEATHER_FORECAST_BASE_URL: Final[str] = "https://api.open-meteo.com/v1/forecast"
+HTTP_TIMEOUT_SECONDS: Final[float] = 5.0
+HTTP_MAX_RETRIES: Final[int] = 2
+
+# Aliases for backward/domain compatibility
+ACTIVITY_BREATHING_RATES_M3_PER_H: Final[dict[str, float]] = ACTIVITY_BREATHING_RATES_ADULT
+LIKELIHOOD_MOSQUITO_COILS: Final[float] = LIKELIHOOD_MOSQUITO_COIL
+LIKELIHOOD_INDOOR_SMOKING: Final[float] = LIKELIHOOD_TOBACCO_SMOKE

@@ -1,5 +1,7 @@
 """Pure ventilation window discovery, inversion detection, and exposure window algorithms."""
 
+from collections.abc import Callable
+
 from app.constants import (
     INVERSION_BLH_M,
     OPEN_WINDOW_MAX_PM25_UG_M3,
@@ -9,37 +11,36 @@ from app.constants import (
 from app.engine.models import HourlyAir, InversionResult, Window
 
 
+def _find_sliding_window(
+    air: list[HourlyAir],
+    min_hours: int,
+    is_better: Callable[[float, float], bool],
+    init_val: float,
+) -> tuple[int, float] | None:
+    """Find contiguous sliding window minimizing or maximizing mean PM2.5."""
+    if len(air) < min_hours:
+        return None
+    best_idx = 0
+    best_val = init_val
+    for i in range(len(air) - min_hours + 1):
+        mean_val = sum(pt.pm25 for pt in air[i : i + min_hours]) / min_hours
+        if is_better(mean_val, best_val):
+            best_val = mean_val
+            best_idx = i
+    return best_idx, best_val
+
+
 def find_ventilation_window(
     air: list[HourlyAir],
     min_hours: int = 2,
 ) -> Window | None:
-    """Identify the optimal contiguous window for natural window airing.
-
-    Args:
-        air: 24-hour sequence of air observations.
-        min_hours: Minimum contiguous duration in hours.
-
-    Returns:
-        Window instance if air quality permits, or None if air is uniformly bad.
-    """
-    if len(air) < min_hours:
+    """Identify the optimal contiguous window for natural window airing."""
+    res = _find_sliding_window(air, min_hours, lambda a, b: a < b, float("inf"))
+    if res is None:
         return None
-    if all(pt.pm25 > OPEN_WINDOW_MAX_PM25_UG_M3 for pt in air):
-        return None
-
-    best_start = 0
-    best_mean = float("inf")
-
-    for i in range(len(air) - min_hours + 1):
-        window_slice = air[i : i + min_hours]
-        mean_val = sum(pt.pm25 for pt in window_slice) / min_hours
-        if mean_val < best_mean:
-            best_mean = mean_val
-            best_start = i
-
+    best_start, best_mean = res
     if best_mean > OPEN_WINDOW_MAX_PM25_UG_M3:
         return None
-
     selected = air[best_start : best_start + min_hours]
     return Window(
         start_hour=selected[0].hour,
@@ -49,56 +50,38 @@ def find_ventilation_window(
     )
 
 
-def detect_inversion(air: list[HourlyAir]) -> InversionResult:
-    """Diagnose temperature inversion and stagnant air trap hours.
+def _flag_by_blh(air: list[HourlyAir]) -> list[int]:
+    """Flag hours where boundary layer height drops below inversion threshold."""
+    return [
+        pt.hour
+        for pt in air
+        if pt.boundary_layer_m is not None and pt.boundary_layer_m < INVERSION_BLH_M
+    ]
 
-    Args:
-        air: Sequence of ambient hourly air records.
 
-    Returns:
-        InversionResult containing flagged hours and method used.
-    """
-    has_blh = any(pt.boundary_layer_m is not None for pt in air)
-    if has_blh:
-        flagged = [
-            pt.hour
-            for pt in air
-            if pt.boundary_layer_m is not None and pt.boundary_layer_m < INVERSION_BLH_M
-        ]
-        return InversionResult(hours=flagged, method="boundary_layer_height")
-
-    flagged = [
+def _flag_by_stagnation(air: list[HourlyAir]) -> list[int]:
+    """Flag nocturnal hours with stagnant surface wind speeds."""
+    return [
         pt.hour for pt in air if pt.hour in STAGNATION_HOURS and pt.wind_kmh < STAGNATION_WIND_KMH
     ]
-    return InversionResult(hours=flagged, method="stagnation_proxy")
+
+
+def detect_inversion(air: list[HourlyAir]) -> InversionResult:
+    """Diagnose temperature inversion and stagnant air trap hours."""
+    if any(pt.boundary_layer_m is not None for pt in air):
+        return InversionResult(hours=_flag_by_blh(air), method="boundary_layer_height")
+    return InversionResult(hours=_flag_by_stagnation(air), method="stagnation_proxy")
 
 
 def worst_exposure_window(
     air: list[HourlyAir],
     min_hours: int = 2,
 ) -> Window | None:
-    """Identify the contiguous time window with the highest average PM2.5.
-
-    Args:
-        air: Sequence of ambient air observations.
-        min_hours: Window duration in hours.
-
-    Returns:
-        Window representing peak smog exposure window, or None if insufficient data.
-    """
-    if len(air) < min_hours:
+    """Identify the contiguous time window with the highest average PM2.5."""
+    res = _find_sliding_window(air, min_hours, lambda a, b: a > b, -1.0)
+    if res is None:
         return None
-
-    worst_start = 0
-    worst_mean = -1.0
-
-    for i in range(len(air) - min_hours + 1):
-        window_slice = air[i : i + min_hours]
-        mean_val = sum(pt.pm25 for pt in window_slice) / min_hours
-        if mean_val > worst_mean:
-            worst_mean = mean_val
-            worst_start = i
-
+    worst_start, worst_mean = res
     selected = air[worst_start : worst_start + min_hours]
     return Window(
         start_hour=selected[0].hour,

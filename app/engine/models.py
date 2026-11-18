@@ -1,59 +1,20 @@
 """Pure domain data models and value objects for exposure and ventilation modeling."""
 
-from enum import StrEnum
 from typing import Literal, NamedTuple, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
-class AgeGroup(StrEnum):
-    """Demographic age categories determining physiological breathing rates."""
-
-    TODDLER = "toddler"
-    CHILD = "child"
-    TEEN = "teen"
-    ADULT = "adult"
-    SENIOR = "senior"
-
-
-class Sensitivity(StrEnum):
-    """Health susceptibility and vulnerability classifications."""
-
-    NONE = "none"
-    ASTHMA_OR_HEART = "asthma_or_heart"
-    PREGNANT = "pregnant"
-
-
-class Activity(StrEnum):
-    """Physical activity categories determining minute ventilation rates."""
-
-    SLEEP = "sleep"
-    REST = "rest"
-    LIGHT = "light"
-    WALK = "walk"
-    EXERCISE = "exercise"
-    COOK = "cook"
-
-
-class Mode(StrEnum):
-    """Micro-environment and commute transit modes."""
-
-    HOME = "home"
-    WALK = "walk"
-    CYCLE = "cycle"
-    METRO = "metro"
-    BUS = "bus"
-    AUTO_RICKSHAW = "auto_rickshaw"
-    CAR = "car"
-    OUTDOOR = "outdoor"
-
-
-class Leakiness(StrEnum):
-    """Building envelope tightness classification."""
-
-    TIGHT = "tight"
-    AVERAGE = "average"
-    LEAKY = "leaky"
+from app.engine.enums import (
+    Activity,
+    AgeGroup,
+    CookingFuel,
+    InterventionCategory,
+    KitchenExhaust,
+    Leakiness,
+    Mode,
+    Sensitivity,
+    SweepingType,
+)
 
 
 class RoutineBlock(BaseModel):
@@ -146,90 +107,59 @@ class BlockDelta(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     block: RoutineBlock = Field(description="Routine block")
-    baseline_dose_ug: float = Field(ge=0.0, description="Baseline inhaled dose in ug")
-    alt_dose_ug: float = Field(ge=0.0, description="Alternative routine inhaled dose in ug")
-    dose_saved_ug: float = Field(description="Reduction in inhaled dose (ug)")
+    baseline_dose_ug: float = Field(ge=0.0, description="Dose without adjustment (ug)")
+    alt_dose_ug: float = Field(ge=0.0, description="Dose with adjustment (ug)")
+    dose_saved_ug: float = Field(description="Net particulate reduction (ug)")
 
 
 class RoutineComparison(BaseModel):
-    """Comparative analysis between baseline and optimized alternative routines."""
+    """Counterfactual comparison between baseline and optimized alternative routines."""
 
     model_config = ConfigDict(frozen=True)
 
-    index_before: float = Field(default=100.0, description="Baseline reference index")
-    index_after: float = Field(ge=0.0, description="Alternative routine exposure index")
-    dose_saved_ug: float = Field(description="Total absolute dose saved (ug)")
-    per_block_delta: list[BlockDelta] = Field(description="Per-block breakdown of dose deltas")
-    provenance: Provenance = Field(description="Comparison methodology assumptions")
+    index_before: float = Field(ge=0.0, description="Baseline index (default 100.0)")
+    index_after: float = Field(ge=0.0, description="Optimized routine index")
+    dose_saved_ug: float = Field(description="Total micrograms saved")
+    per_block_delta: list[BlockDelta] = Field(description="Dose changes per block")
+    provenance: Provenance = Field(description="Modeling provenance")
 
 
 class Window(BaseModel):
-    """Contiguous time window recommendation for ventilation or hazard avoidance."""
+    """Contiguous time window identified for natural ventilation or peak exposure avoidance."""
 
     model_config = ConfigDict(frozen=True)
 
     start_hour: int = Field(ge=0, le=23, description="Starting hour index (0-23)")
     end_hour: int = Field(ge=1, le=24, description="Ending hour index (1-24)")
-    mean_pm25: float = Field(
-        ge=0.0,
-        description="Average PM2.5 concentration across window (ug/m3)",
-    )
-    reason: str = Field(description="Actionable rationale for this window")
+    mean_pm25: float = Field(ge=0.0, description="Window mean PM2.5 concentration in ug/m3")
+    reason: str = Field(description="Domain rationale for window selection")
 
 
 class InversionResult(NamedTuple):
-    """Flagged temperature inversion hours and diagnostic method used."""
+    """Diagnosis of nocturnal temperature inversion and boundary layer stagnation."""
 
     hours: list[int]
-    method: str
-
-
-class CookingFuel(StrEnum):
-    """Primary household cooking fuel classification."""
-
-    LPG = "lpg"
-    WOOD = "wood"
-    BIOMASS = "biomass"
-    INDUCTION = "induction"
-    ELECTRIC_COIL = "electric_coil"
-
-
-class KitchenExhaust(StrEnum):
-    """Kitchen ventilation and exhaust configuration."""
-
-    NONE = "none"
-    INTERNAL = "internal"
-    VENTED = "vented"
-
-
-class SweepingType(StrEnum):
-    """Floor dust cleaning modality."""
-
-    DRY = "dry"
-    WET = "wet"
+    method: Literal["boundary_layer_height", "stagnation_proxy"]
 
 
 class HomeSurvey(BaseModel):
-    """Household questionnaire assessing indoor pollution sources and habits."""
+    """Questionnaire evaluating domestic pollution emission sources."""
 
     model_config = ConfigDict(frozen=True)
 
     cooking_fuel: CookingFuel = Field(
         default=CookingFuel.LPG,
-        description="Primary cooking energy source",
+        description="Primary cooking fuel used in home",
     )
     kitchen_exhaust: KitchenExhaust = Field(
         default=KitchenExhaust.NONE,
-        description="Exhaust ventilation setup",
+        description="Exhaust status in kitchen",
     )
-    incense: bool = Field(default=False, description="Regular burning of agarbatti/incense")
-    mosquito_coil: bool = Field(default=False, description="Overnight mosquito coil burning")
-    smokers: bool = Field(default=False, description="Active indoor tobacco smokers")
-    pets: bool = Field(default=False, description="Furred domestic pets")
-    sweeping: SweepingType = Field(
-        default=SweepingType.DRY,
-        description="Floor cleaning method",
-    )
+    incense: bool = Field(default=False, description="Routine agarbatti/dhoop burning")
+    mosquito_coil: bool = Field(default=False, description="Use of smoldering mosquito coils")
+    smokers: bool = Field(default=False, description="Tobacco smokers residing in home")
+    pets: bool = Field(default=False, description="Domestic pets residing indoors")
+    sweeping: SweepingType = Field(default=SweepingType.DRY, description="Flooring sweeping method")
     indoor_pm25_reading: float | None = Field(
         default=None,
         ge=0.0,
@@ -249,15 +179,6 @@ class SourceFinding(BaseModel):
         description="'measured' only when reading exceeds threshold, otherwise 'suspected'",
     )
     fixes: list[str] = Field(description="Actionable mitigation measures")
-
-
-class InterventionCategory(StrEnum):
-    """Domain grouping for household and individual air quality interventions."""
-
-    TIMING = "timing"
-    HOME = "home"
-    TRANSPORT = "transport"
-    COMMUNITY = "community"
 
 
 class Intervention(BaseModel):
@@ -338,3 +259,35 @@ class RedFlag(BaseModel):
     urgency: Literal["immediate", "urgent"] = Field(description="Clinical urgency triage level")
     action: str = Field(description="Mandatory directive (overrides all planner advice)")
     language: Literal["en", "hi"] = Field(description="Detected language of query")
+
+
+__all__ = [
+    "Activity",
+    "AgeGroup",
+    "BlockDelta",
+    "CommunityImpact",
+    "ConfidenceLevel",
+    "CookingFuel",
+    "DayExposure",
+    "HomeProfile",
+    "HomeSurvey",
+    "HourExposure",
+    "HourlyAir",
+    "HouseholdContext",
+    "Intervention",
+    "InterventionCategory",
+    "InversionResult",
+    "KitchenExhaust",
+    "Leakiness",
+    "Mode",
+    "Pledge",
+    "Provenance",
+    "RankedIntervention",
+    "RedFlag",
+    "RoutineBlock",
+    "RoutineComparison",
+    "Sensitivity",
+    "SourceFinding",
+    "SweepingType",
+    "Window",
+]

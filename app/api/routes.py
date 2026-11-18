@@ -51,7 +51,7 @@ def _to_member_inputs(members: list[FamilyMemberInput]) -> list[MemberPlanInput]
 
 
 @router.post("/plan", response_model=PlanResponse)
-def plan_endpoint(req: PlanRequest) -> dict[str, Any]:
+def plan_endpoint(req: PlanRequest) -> PlanResponse:
     """Build personalized 24-hour clean-air exposure plan and recommendations."""
     return create_clean_air_plan(
         members=_to_member_inputs(req.members),

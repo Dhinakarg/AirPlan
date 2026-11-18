@@ -1,6 +1,7 @@
 """FastAPI application entrypoint for AirPlan."""
 
 import logging
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -68,29 +69,27 @@ async def domain_error_handler(request: Request, exc: AirPlanError) -> JSONRespo
     )
 
 
+def _extract_field_path(loc: Sequence[Any]) -> str:
+    """Format property hierarchy excluding root payload wrapper."""
+    return " -> ".join(str(item) for item in loc if item != "body")
+
+
+def _format_validation_msg(errors: Sequence[Any]) -> str:
+    """Format the first validation error message without leaking internal trace details."""
+    if not errors or not isinstance(errors[0], dict):
+        return "Invalid request payload or parameters."
+    field = _extract_field_path(errors[0].get("loc", []))
+    msg = errors[0].get("msg", "Invalid value")
+    if field:
+        return f"Validation failed at '{field}': {msg}"
+    return f"Validation failed: {msg}"
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
-    """Handle request payload validation failures without leaking stack traces.
-
-    Args:
-        request: Incoming HTTP request.
-        exc: Validation error details.
-
-    Returns:
-        JSONResponse with 422 status and error envelope.
-    """
+    """Handle request payload validation failures without leaking stack traces."""
     corr_id = getattr(request.state, "correlation_id", "unknown")
-    errors = exc.errors()
-    if errors:
-        first = errors[0]
-        field = " -> ".join(str(item) for item in first.get("loc", []) if item != "body")
-        msg = first.get("msg", "Invalid value")
-        if field:
-            error_msg = f"Validation failed at '{field}': {msg}"
-        else:
-            error_msg = f"Validation failed: {msg}"
-    else:
-        error_msg = "Invalid request payload or parameters."
+    error_msg = _format_validation_msg(exc.errors())
     return JSONResponse(
         status_code=422,
         content={"error": error_msg, "correlation_id": corr_id},

@@ -1,20 +1,21 @@
-"""Clean air exposure planning and family intervention orchestration service."""
+"""Personalized clean-air plan generation and routine orchestration service."""
 
 from typing import Any
 
 from app.ai.provider import AssistantProvider
+from app.api.schemas import PlanResponse
 from app.data.air_client import fetch_hourly_air
+from app.engine.enums import AgeGroup, Sensitivity
 from app.engine.exposure import calculate_day_exposure
 from app.engine.models import (
-    AgeGroup,
     DayExposure,
     HomeProfile,
+    HourlyAir,
     HouseholdContext,
     InversionResult,
     Provenance,
     RankedIntervention,
     RoutineBlock,
-    Sensitivity,
     Window,
 )
 from app.engine.ranking import rank_interventions
@@ -27,20 +28,27 @@ from app.services.assistant_service import generate_clean_air_advice
 
 
 class MemberPlanInput:
-    """Individual family member profile for exposure planning."""
+    """Input parameters for an individual family member."""
 
     def __init__(
         self,
         name: str,
-        age_group: AgeGroup,
+        age_group: AgeGroup = AgeGroup.ADULT,
         sensitivity: Sensitivity = Sensitivity.NONE,
         routine: list[RoutineBlock] | None = None,
     ) -> None:
-        """Initialize family member input."""
+        """Initialize member input profile."""
         self.name = name
         self.age_group = age_group
         self.sensitivity = sensitivity
         self.routine = routine or []
+
+
+def _window_params(vent_win: Window | None) -> tuple[int, int, float]:
+    """Extract default or calculated start, end, and mean PM2.5 from window."""
+    if vent_win is not None:
+        return vent_win.start_hour, vent_win.end_hour, vent_win.mean_pm25
+    return 13, 15, 75.0
 
 
 def _extract_facts(
@@ -51,17 +59,71 @@ def _extract_facts(
 ) -> dict[str, Any]:
     """Compile ground-truth facts dictionary for AI placeholder substitution."""
     top_title = ranked[0].intervention.title if ranked else "Natural ventilation"
+    win_start, win_end, mean_pm = _window_params(vent_win)
     return {
         "index_after": 68.5,
         "index_before": 100.0,
         "dose_saved": 145.0,
-        "window_start": vent_win.start_hour if vent_win else 13,
-        "window_end": vent_win.end_hour if vent_win else 15,
-        "mean_pm25": vent_win.mean_pm25 if vent_win else 75.0,
+        "window_start": win_start,
+        "window_end": win_end,
+        "mean_pm25": mean_pm,
         "top_intervention": top_title,
-        "cleanest_hour": vent_win.start_hour if vent_win else 13,
+        "cleanest_hour": win_start,
         "stagnation_hours": ", ".join(str(h) for h in inversion.hours[:3]) or "none",
     }
+
+
+def _calc_members_exposure(
+    members: list[MemberPlanInput], air: list[HourlyAir], home: HomeProfile
+) -> dict[str, DayExposure]:
+    """Calculate personalized 24-hour exposure for each family member."""
+    return {m.name: calculate_day_exposure(m.routine, air, home, m.age_group) for m in members}
+
+
+def _resolve_context(
+    context: HouseholdContext | None, members: list[MemberPlanInput]
+) -> HouseholdContext:
+    """Resolve household health vulnerability context."""
+    if context is not None:
+        return context
+    return HouseholdContext(
+        has_asthma_or_heart=any(m.sensitivity == Sensitivity.ASTHMA_OR_HEART for m in members),
+        has_children=any(m.age_group in {AgeGroup.TODDLER, AgeGroup.CHILD} for m in members),
+    )
+
+
+def _build_plan(
+    members: list[MemberPlanInput],
+    home: HomeProfile,
+    air: list[HourlyAir],
+    *,
+    vent_win: Window | None,
+    worst_win: Window | None,
+    inversion: InversionResult,
+    ranked: list[RankedIntervention],
+    guidance: dict[str, Any],
+) -> PlanResponse:
+    """Assemble final validated PlanResponse object."""
+    return PlanResponse(
+        members_exposure=_calc_members_exposure(members, air, home),
+        ventilation_window=vent_win,
+        worst_window=worst_win,
+        inversion=inversion,
+        ranked_interventions=ranked,
+        ai_guidance=guidance,
+        data_source=air[0].source if air else "sample",
+        provenance=Provenance(
+            text="Diurnal microenvironment box model with verified meteorological inputs",
+            confidence="high",
+        ),
+    )
+
+
+def _analyze_meteorology(
+    air: list[HourlyAir],
+) -> tuple[Window | None, Window | None, InversionResult]:
+    """Extract ventilation window, peak exposure window, and atmospheric inversion."""
+    return find_ventilation_window(air), worst_exposure_window(air), detect_inversion(air)
 
 
 def create_clean_air_plan(
@@ -75,63 +137,17 @@ def create_clean_air_plan(
     context: HouseholdContext | None = None,
     language: str = "en",
     provider: AssistantProvider | None = None,
-) -> dict[str, Any]:
-    """Orchestrate diurnal air fetching, exposure calculation, and AI advice.
-
-    Args:
-        members: List of family member profiles and routines.
-        home: Household structural envelope and filtration state.
-        latitude: Geolocation latitude (will be rounded to 2 decimals).
-        longitude: Geolocation longitude (will be rounded to 2 decimals).
-        date: Optional target date string (YYYY-MM-DD).
-        budget_inr: Monthly clean-air budget ceiling.
-        context: Optional explicit HouseholdContext.
-        language: Language code ('en' or 'hi').
-        provider: Optional explicit AssistantProvider.
-
-    Returns:
-        Structured plan dictionary.
-    """
-    r_lat = round(latitude, 2)
-    r_lon = round(longitude, 2)
-    air = fetch_hourly_air(r_lat, r_lon, date)
-    data_source = air[0].source if air else "sample"
-
-    vent_win = find_ventilation_window(air)
-    worst_win = worst_exposure_window(air)
-    inversion = detect_inversion(air)
-
-    members_exposure: dict[str, DayExposure] = {}
-    for m in members:
-        exp = calculate_day_exposure(m.routine, air, home, m.age_group)
-        members_exposure[m.name] = exp
-
-    active_ctx = context or HouseholdContext(
-        has_asthma_or_heart=any(m.sensitivity == Sensitivity.ASTHMA_OR_HEART for m in members),
-        has_children=any(m.age_group in {AgeGroup.TODDLER, AgeGroup.CHILD} for m in members),
-    )
-    ranked = rank_interventions(active_ctx, budget_inr)
-
-    facts = _extract_facts(vent_win, worst_win, inversion, ranked)
-    ai_guidance = generate_clean_air_advice(
+) -> PlanResponse:
+    """Orchestrate diurnal air fetching, exposure calculation, and AI advice."""
+    air = fetch_hourly_air(round(latitude, 2), round(longitude, 2), date)
+    vw, ww, inv = _analyze_meteorology(air)
+    rk = rank_interventions(_resolve_context(context, members), budget_inr)
+    g = generate_clean_air_advice(
         "Summarize today's clean air plan and actionable tips.",
-        facts,
+        _extract_facts(vw, ww, inv, rk),
         lang=language,
         provider=provider,
     )
-
-    prov = Provenance(
-        text="Diurnal microenvironment box model with verified meteorological inputs",
-        confidence="high",
+    return _build_plan(
+        members, home, air, vent_win=vw, worst_win=ww, inversion=inv, ranked=rk, guidance=g
     )
-
-    return {
-        "members_exposure": members_exposure,
-        "ventilation_window": vent_win,
-        "worst_window": worst_win,
-        "inversion": inversion,
-        "ranked_interventions": ranked,
-        "ai_guidance": ai_guidance,
-        "data_source": data_source,
-        "provenance": prov,
-    }
