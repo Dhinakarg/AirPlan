@@ -104,3 +104,31 @@ STAGNATION_HOURS: Final[frozenset[int]] = frozenset({20, 21, 22, 23, 0, 1, 2, 3,
 
 # Baseline index reference level for comparison
 BASELINE_EXPOSURE_INDEX: Final[float] = 100.0
+
+# --- Indoor Pollution Source Scoring Thresholds ---
+# Unit: ug/m3 (24h indoor threshold above which indoor reading indicates active emission)
+# Provenance: Indian NAAQS 24-hour PM2.5 standard for indoor air quality evaluation
+INDOOR_PM25_ELEVATED_THRESHOLD_UG_M3: Final[float] = 60.0
+
+# --- Ranking Normalization Weights and Denominators ---
+# Unit: INR / month (normalizing monthly budget cost for cost-effectiveness denominator)
+COST_NORMALIZATION_INR: Final[float] = 1000.0
+
+# Unit: Dimensionless scalar (maximum effort scale 1 to 5)
+EFFORT_MAX: Final[float] = 5.0
+
+# --- Community Impact Aggregation Parameters ---
+# Unit: Kilometers (average roundtrip urban commute distance in Indian metropolitan areas)
+COMMUNITY_AVERAGE_TRIP_KM: Final[float] = 12.0
+
+# Unit: kg CO2 / km (tailpipe carbon dioxide emission factor for average passenger car)
+COMMUNITY_CO2_KG_PER_KM_CAR: Final[float] = 0.192
+
+# Qualitative non-measured disclaimer for community PM2.5 impact
+COMMUNITY_PM25_QUALITATIVE_NOTE: Final[str] = (
+    "may reduce local traffic emissions; not a measured PM2.5 change"
+)
+
+# --- Medical Emergency Red-Flag Protocol ---
+# Rationale: Clinical triage directive that strictly overrides all ambient planner advice
+RED_FLAG_OVERRIDE_ACTION: Final[str] = "seek medical care now"
