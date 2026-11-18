@@ -89,7 +89,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         # 5. Attach security headers and correlation tracking
         response.headers["X-Correlation-ID"] = corr_id
         response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; script-src 'self'; style-src 'self'; "
+            "default-src 'self'; script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com; "
+            "connect-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; "
             "img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; "
             "object-src 'none'; base-uri 'self'"
         )

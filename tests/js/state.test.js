@@ -65,3 +65,4 @@ test('state: resetState restores initial values', () => {
   assert.equal(getState().budgetInr, 500);
   assert.equal(getState().language, 'en');
 });
+

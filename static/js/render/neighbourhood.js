@@ -121,7 +121,7 @@ function renderCommunityCards(container, summary, lang) {
   // Card 1: CO2 Emissions and Trips Avoided Card
   const co2Card = document.createElement('div');
   co2Card.className = 'card';
-  const co2Title = document.createElement('h4');
+  const co2Title = document.createElement('h3');
   co2Title.textContent = `🌱 ${t('co2Card', lang)}`;
   const co2P1 = document.createElement('p');
   co2P1.textContent = `Trips Avoided: ${summary.trips_avoided} • Distance Saved: ${summary.km_avoided} km`;
@@ -137,7 +137,7 @@ function renderCommunityCards(container, summary, lang) {
   // Card 2: PM2.5 Qualitative Note Card (Separate Card)
   const pm25Card = document.createElement('div');
   pm25Card.className = 'card callout-card';
-  const pm25Title = document.createElement('h4');
+  const pm25Title = document.createElement('h3');
   pm25Title.textContent = `💨 ${t('pm25Card', lang)}`;
   const pm25P = document.createElement('p');
   pm25P.textContent = summary.pm25_note;
@@ -152,3 +152,4 @@ function renderCommunityCards(container, summary, lang) {
 
   container.appendChild(dashboardWrap);
 }
+

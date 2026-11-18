@@ -80,7 +80,7 @@ export function renderResultsScreen(container) {
     const vc = document.createElement('div');
     vc.className = 'card callout-card';
     const w = plan.ventilation_window;
-    vc.appendChild(document.createElement('h4')).textContent =
+    vc.appendChild(document.createElement('h3')).textContent =
       `🪟 ${t('ventilationWindow', lang)}: ${w.start_hour}:00–${w.end_hour}:00`;
     vc.appendChild(document.createElement('p')).textContent =
       `${w.rationale} (Avg: ${formatConcentration(w.avg_pm25)})`;
@@ -95,7 +95,7 @@ function renderTimeline(container, memberExposure) {
   if (!memberExposure?.hours) return;
   const sec = document.createElement('div');
   sec.className = 'card';
-  sec.appendChild(document.createElement('h4')).textContent = '24-Hour Particulate Exposure Timeline';
+  sec.appendChild(document.createElement('h3')).textContent = '24-Hour Particulate Exposure Timeline';
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 480 160');
@@ -159,7 +159,7 @@ function renderRanked(container, interventions, lang) {
   if (!interventions?.length) return;
   const sec = document.createElement('div');
   sec.className = 'card';
-  sec.appendChild(document.createElement('h4')).textContent = t('rankedInterventions', lang);
+  sec.appendChild(document.createElement('h3')).textContent = t('rankedInterventions', lang);
   const list = document.createElement('ol');
 
   interventions.forEach((item) => {

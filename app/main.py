@@ -2,11 +2,12 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -149,10 +150,18 @@ def healthcheck() -> dict[str, str]:
 
 
 @app.get("/")
-def root() -> dict[str, str]:
-    """Root endpoint providing service status information.
+def root(request: Request) -> Any:
+    """Root endpoint providing service status information or web UI.
+
+    Args:
+        request: Incoming HTTP request.
 
     Returns:
-        Dictionary with status and application identifier.
+        FileResponse if browser requested HTML, else JSON status dictionary.
     """
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept and not accept.startswith("*/*"):
+        index_file = static_path / "index.html"
+        if index_file.exists():
+            return FileResponse(str(index_file))
     return {"status": "ok", "app": settings.app_name}

@@ -79,34 +79,34 @@
     <div id="status-announcer" class="sr-only" aria-live="polite" role="status"></div>
     <div id="error-alert" role="alert" tabindex="-1" class="error-banner sr-only"></div>
 
-    <main id="main-content" role="main" class="main-sections">
+    <main id="main-content" role="main" class="main-sections" tabindex="-1">
       <!-- Screen 1: Family & Home Setup -->
-      <section id="screen-family" class="layout-screen" aria-labelledby="heading-family">
+      <section id="screen-family" role="tabpanel" tabindex="0" aria-labelledby="tab-family" class="layout-screen">
         <h2 id="heading-family" class="sr-only">Family and Home Setup</h2>
       </section>
 
       <!-- Screen 2: Day Routine Ledger -->
-      <section id="screen-ledger" class="layout-screen sr-only" aria-labelledby="heading-ledger">
+      <section id="screen-ledger" role="tabpanel" tabindex="0" aria-labelledby="tab-ledger" class="layout-screen" hidden>
         <h2 id="heading-ledger" class="sr-only">Daily Routine Ledger</h2>
       </section>
 
       <!-- Screen 3: Results & Exposure Ledger -->
-      <section id="screen-results" class="layout-screen sr-only" aria-labelledby="heading-results">
+      <section id="screen-results" role="tabpanel" tabindex="0" aria-labelledby="tab-results" class="layout-screen" hidden>
         <h2 id="heading-results" class="sr-only">Clean-Air Plan Results</h2>
       </section>
 
       <!-- Screen 4: Home Pollution Detective -->
-      <section id="screen-detective" class="layout-screen sr-only" aria-labelledby="heading-detective">
+      <section id="screen-detective" role="tabpanel" tabindex="0" aria-labelledby="tab-detective" class="layout-screen" hidden>
         <h2 id="heading-detective" class="sr-only">Home Pollution Detective</h2>
       </section>
 
       <!-- Screen 5: Neighbourhood Collective Action -->
-      <section id="screen-neighbourhood" class="layout-screen sr-only" aria-labelledby="heading-neighbourhood">
+      <section id="screen-neighbourhood" role="tabpanel" tabindex="0" aria-labelledby="tab-neighbourhood" class="layout-screen" hidden>
         <h2 id="heading-neighbourhood" class="sr-only">Neighbourhood Action</h2>
       </section>
 
       <!-- Screen 6: Ask AirLedger Assistant -->
-      <section id="screen-assistant" class="layout-screen sr-only" aria-labelledby="heading-assistant">
+      <section id="screen-assistant" role="tabpanel" tabindex="0" aria-labelledby="tab-assistant" class="layout-screen" hidden>
         <h2 id="heading-assistant" class="sr-only">Ask AirLedger Assistant</h2>
       </section>
     </main>

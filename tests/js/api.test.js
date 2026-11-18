@@ -127,3 +127,4 @@ test('api: askAssistant sends question facts and language', async () => {
     globalThis.fetch = originalFetch;
   }
 });
+

@@ -14,6 +14,7 @@ class DocumentParser(HTMLParser):
         """Initialize tracking data structures."""
         super().__init__()
         self.html_attrs: dict[str, str | None] = {}
+        self.main_attrs: dict[str, str | None] = {}
         self.h1_count: int = 0
         self.landmarks: set[str] = set()
         self.first_link_href: str | None = None
@@ -27,6 +28,7 @@ class DocumentParser(HTMLParser):
         self.tables_count: int = 0
         self.table_has_caption: bool = False
         self.table_th_scopes: list[str] = []
+        self.screen_sections: list[dict[str, str | None]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         """Process element start tags and record attributes for accessibility audits.
@@ -40,14 +42,20 @@ class DocumentParser(HTMLParser):
 
         if tag == "html":
             self.html_attrs = attr_dict
+        elif tag == "main":
+            self.main_attrs = attr_dict
+            self.landmarks.add("main")
         elif tag == "h1":
             self.h1_count += 1
-        elif tag in ("header", "nav", "main", "footer"):
+        elif tag in ("header", "nav", "footer"):
             self.landmarks.add(tag)
 
         role = attr_dict.get("role")
         if role in ("banner", "navigation", "main", "contentinfo"):
             self.landmarks.add(role)
+
+        if tag == "section" and (attr_dict.get("id") or "").startswith("screen-"):
+            self.screen_sections.append(attr_dict)
 
         self._check_first_link(tag, attr_dict)
         self._check_form_controls(tag, attr_dict)
@@ -148,6 +156,35 @@ def test_skip_link_first_element(client: TestClient) -> None:
     assert "skip-link" in parser.first_link_class
 
 
+def test_main_landmark_has_tabindex(client: TestClient) -> None:
+    """Verify main content has tabindex=-1 for keyboard skip navigation target."""
+    parser = DocumentParser()
+    parser.feed(_get_served_html(client))
+    assert parser.main_attrs.get("tabindex") == "-1"
+    assert parser.main_attrs.get("id") == "main-content"
+
+
+def test_screen_sections_are_tabpanels(client: TestClient) -> None:
+    """Verify all screen sections declare role=tabpanel and explicit aria-labelledby."""
+    parser = DocumentParser()
+    parser.feed(_get_served_html(client))
+    assert len(parser.screen_sections) == 6
+    for sec in parser.screen_sections:
+        assert sec.get("role") == "tabpanel"
+        assert sec.get("tabindex") == "0"
+        assert sec.get("aria-labelledby") is not None
+
+
+def test_inactive_screens_hidden_from_tab_order(client: TestClient) -> None:
+    """Verify inactive screens carry hidden attribute to prevent keyboard focus traps."""
+    parser = DocumentParser()
+    parser.feed(_get_served_html(client))
+    inactive_screens = [s for s in parser.screen_sections if s.get("id") != "screen-family"]
+    assert len(inactive_screens) == 5
+    for sec in inactive_screens:
+        assert "hidden" in sec, f"Screen {sec.get('id')} lacks hidden attribute"
+
+
 def test_all_inputs_have_associated_labels(client: TestClient) -> None:
     """Verify all interactive inputs have an associated label or nested label."""
     parser = DocumentParser()
@@ -193,10 +230,7 @@ def test_no_innerhtml_in_static_js() -> None:
 def test_table_has_caption_and_th_scopes(client: TestClient) -> None:
     """Verify tables contain descriptive captions and column/row scope headers."""
     parser = DocumentParser()
-    # Also test table rendered in static HTML or generated DOM template
-    # Read results.js template / html parser
     html = _get_served_html(client)
-    # If table is present in index.html, verify it; otherwise test table renderer directly
     repo_root = Path(__file__).resolve().parent.parent.parent
     results_js = repo_root / "static" / "js" / "render" / "results.js"
     results_code = results_js.read_text(encoding="utf-8")

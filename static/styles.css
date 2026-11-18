@@ -233,6 +233,16 @@ header[role="banner"] {
   border-color: var(--color-primary);
 }
 
+.layout-screen[hidden] {
+  display: none !important;
+}
+
+.layout-screen:focus-visible,
+main:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 4px;
+}
+
 .card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);

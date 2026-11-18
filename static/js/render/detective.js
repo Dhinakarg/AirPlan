@@ -134,7 +134,7 @@ export function renderDetectiveScreen(container) {
     const card = document.createElement('div');
     card.className = 'card';
     card.style.marginTop = '24px';
-    const fTitle = document.createElement('h4');
+    const fTitle = document.createElement('h3');
     fTitle.textContent = 'Identified Sources & Practical Fixes';
     card.appendChild(fTitle);
 

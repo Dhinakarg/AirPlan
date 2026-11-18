@@ -64,3 +64,4 @@ test('i18n: updateDocumentLang handles environment gracefully', () => {
     updateDocumentLang('hi');
   });
 });
+

@@ -87,7 +87,7 @@ function renderAssistantResult(container, res, lang) {
     resultBox.setAttribute('role', 'alert');
     resultBox.tabIndex = -1;
 
-    const alertHdr = document.createElement('h4');
+    const alertHdr = document.createElement('h3');
     alertHdr.textContent = `🚨 ${t('emergencyAlert', lang)}`;
     const sum = document.createElement('p');
     sum.style.fontWeight = '700';
@@ -102,7 +102,7 @@ function renderAssistantResult(container, res, lang) {
   } else {
     resultBox.className = 'card callout-card';
 
-    const sumHdr = document.createElement('h4');
+    const sumHdr = document.createElement('h3');
     sumHdr.textContent = res.summary;
     resultBox.appendChild(sumHdr);
 
@@ -123,3 +123,4 @@ function renderAssistantResult(container, res, lang) {
 
   container.appendChild(resultBox);
 }
+

@@ -83,7 +83,7 @@ export function switchScreen(screenId) {
     const tab = document.getElementById(`tab-${name}`);
     const isTarget = `screen-${name}` === screenId;
     if (sec && tab) {
-      sec.classList.toggle('sr-only', !isTarget);
+      sec.hidden = !isTarget;
       tab.setAttribute('aria-selected', String(isTarget));
       tab.classList.toggle('active-tab', isTarget);
     }

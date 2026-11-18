@@ -40,3 +40,4 @@ test('render helpers: DEFAULT_ROUTINE covers complete 24-hour cycle without gaps
   });
   assert.equal(prevEnd, 24);
 });
+

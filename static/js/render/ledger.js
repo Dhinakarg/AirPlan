@@ -161,7 +161,7 @@ export function renderLedgerScreen(container) {
     const resBox = document.createElement('div');
     resBox.className = 'card callout-card';
     resBox.style.marginTop = '16px';
-    const head = document.createElement('h4');
+    const head = document.createElement('h3');
     head.textContent = `Counterfactual Day: Index ${s.simulationResult.index_after} (Saved ${s.simulationResult.dose_saved_ug} µg)`;
     const prov = document.createElement('p');
     prov.className = 'provenance-tag';
