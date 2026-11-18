@@ -46,3 +46,20 @@ main button.ghost { background: transparent; border-color: transparent;
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
+
+
+main { max-width: 1120px; }
+
+/* stop double-carding: only the cards the markup marks as cards */
+main section > div { background: none; border: 0; padding: 0; margin: 0; }
+main .card, main fieldset { background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin: 0 0 16px; }
+
+/* two-column layout on desktop: form cards left, live summary right */
+@media (min-width: 960px) {
+  .step-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px; align-items: start; }
+  .step-aside { position: sticky; top: 24px; }
+}
+
+main .actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
