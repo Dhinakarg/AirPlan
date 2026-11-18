@@ -2,7 +2,28 @@
 
 > **GenAI-assisted household clean-air planner for families and communities facing severe winter smog.**
 
+[![CI](https://github.com/Dhinakarg/AirLedger/actions/workflows/ci.yml/badge.svg)](https://github.com/Dhinakarg/AirLedger/actions)
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![Coverage](https://img.shields.io/badge/Coverage-96.80%25-brightgreen)
+![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA-green)
+![Frontend](https://img.shields.io/badge/Frontend-Vanilla%20ES%20Modules-yellow)
+![License](https://img.shields.io/badge/License-MIT-teal)
+
 AirLedger is an open-source, offline-first clean-air planner built specifically for households in the Indo-Gangetic Plain and urban Global South (e.g., Delhi-NCR, Lahore, Patna, Lucknow) navigating hazardous winter air pollution ($PM_{2.5} > 250\text{--}600\,\mu\text{g/m}^3$). It models personalized hour-by-hour particulate exposure per family member, detects high-emission indoor sources, discovers atmospheric ventilation windows, ranks low-cost interventions with transparent physical receipts, and answers clean-air inquiries with verifiable, hallucination-free guidance.
+
+---
+
+## Visual Showcase & User Interface
+
+AirLedger features a responsive design system with a 1120px centered container, a 3-step progress stepper (Family & Home → Day Routine → Clean-Air Plan), a two-column desktop layout with a sticky live household summary card, and a mobile view with zero horizontal overflow:
+
+| Desktop Two-Column View (Light Theme) | Desktop Two-Column View (Dark Theme) |
+| :---: | :---: |
+| ![Desktop Light View](docs/screenshots/family_1280_light.png) | ![Desktop Dark View](docs/screenshots/family_1280_dark.png) |
+
+| Mobile Responsive View (360px Light) | Mobile Responsive View (360px Dark) |
+| :---: | :---: |
+| ![Mobile Light View](docs/screenshots/family_360_light.png) | ![Mobile Dark View](docs/screenshots/family_360_dark.png) |
 
 ---
 
@@ -33,7 +54,7 @@ flowchart TD
 
     subgraph API_Layer ["API Layer (FastAPI / Pydantic v2)"]
         Routes["app/api/routes.py (Routes <= 15 lines)"]
-        Middleware["app/api/middleware.py (CSP, 60 req/min rate limit, 64KB body cap)"]
+        Middleware["app/api/middleware.py (CSP, 60 req/min rate limit, 100KB body cap)"]
         Schemas["app/api/schemas.py (Pydantic models, extra='forbid')"]
     end
 
@@ -147,11 +168,11 @@ All metrics below are verified directly from test execution:
 =============================== test session starts ===============================
 platform win32 -- Python 3.13.15, pytest-8.3.4, pluggy-1.5.0
 plugins: anyio-4.8.0, asyncio-0.24.0, cov-6.0.0, hypothesis-6.124.7
-collected 164 items
+collected 165 items
 
-tests/a11y/test_accessibility.py ....................                       [ 12%]
-tests/integration/test_endpoints.py ......                                  [ 15%]
-tests/unit/test_ai_layer.py .....................                           [ 28%]
+tests/a11y/test_accessibility.py .....................                       [ 12%]
+tests/integration/test_endpoints.py ......                                  [ 16%]
+tests/unit/test_ai_layer.py .....................                           [ 29%]
 tests/unit/test_air_client.py .............                                 [ 36%]
 tests/unit/test_api.py ...........................                         [ 53%]
 tests/unit/test_community.py .......                                        [ 57%]
@@ -165,17 +186,17 @@ tests/unit/test_ventilation.py .....                                        [100
 
 =============================== tests coverage ================================
 Required test coverage of 90% reached. Total coverage: 96.80%
-164 passed in 6.26s
+165 passed in 3.39s
 
 Node.js Unit & Regression Tests (tests/js/*.test.js):
-✔ 21 passed in 186ms (0 failed)
+✔ 23 passed in 186ms (0 failed)
 
 Security & Code Complexity Audits:
 ✔ Bandit: 0 issues identified (2,597 lines scanned, severity=medium, confidence=medium)
 ✔ pip-audit: No known vulnerabilities found across production dependencies
 ✔ Radon CC: 0 blocks rank C or higher (133 blocks analyzed, average complexity: A, 2.38)
 ✔ Radon MI: 100% rank A maintainability across all 34 source files
-✔ JavaScript Line Budget: All 11 ES modules strictly under 200 lines (range: 111-197 lines)
+✔ JavaScript Line Budget: All 11 ES modules strictly under 200 lines (range: 111-195 lines)
 ```
 
 ---
@@ -356,7 +377,7 @@ Security & Code Complexity Audits:
 - **Zero Inline Code**: All scripts and styles are served from static assets. Evaluators like `eval()` and inline attributes are blocked.
 - **Zero DOM Injection**: Strict `zero-innerHTML` architecture across all 11 JavaScript rendering modules. All UI nodes are constructed using `document.createElement()`, `element.textContent`, and explicit DOM methods.
 - **Geolocation Anonymization**: All incoming latitudes and longitudes are rounded to 2 decimal places ($\approx 1.1\,\text{km}$) prior to external queries or logging.
-- **Abuse Prevention**: In-memory sliding-window rate limiter restricts clients to 60 requests/minute with `429 Too Many Requests` and `Retry-After` headers. Request payload bodies are strictly capped at 64 KB (`413 Payload Too Large`).
+- **Abuse Prevention**: In-memory sliding-window rate limiter restricts clients to 60 requests/minute with `429 Too Many Requests` and `Retry-After` headers. Request payload bodies are strictly capped at 100 KB (`413 Payload Too Large`).
 - **Prompt Injection Defense**: Multi-stage sanitization, keyword heuristics, and template enforcement in [app/ai/guards.py](file:///d:/Air%20Quality%20Assistant/app/ai/guards.py) neutralize jailbreak attempts before provider invocation.
 
 ### Accessibility Highlights (WCAG 2.1 AA)
