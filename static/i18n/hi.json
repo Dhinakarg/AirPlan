@@ -1,0 +1,22 @@
+{
+  "siteTitle": "एयरलेजर (AirLedger)",
+  "siteTagline": "घरेलू स्वच्छ हवा और स्मॉग सुरक्षा योजना",
+  "highContrast": "उच्च कंट्रास्ट",
+  "plainLanguage": "सरल भाषा",
+  "householdProfile": "घर का विवरण",
+  "cookingFuel": "रसोई का मुख्य ईंधन",
+  "exhaustFan": "रसोई में एग्जॉस्ट फैन मौजूद है",
+  "incenseCoils": "अगरबत्ती या मच्छर भगाने वाली कॉइल का उपयोग",
+  "sealingDrafts": "खिड़कियों और दरवाजों पर सील/वेदरस्ट्रिप",
+  "roomVolume": "कमरे का आयतन (m³)",
+  "purifierCadr": "मौजूदा एयर प्यूरीफायर CADR (m³/h)",
+  "generatePlan": "स्वच्छ हवा योजना तैयार करें",
+  "exposureReduction": "प्रदूषण में कुल कमी",
+  "indoorAvg": "औसत इनडोर PM2.5 (µg/m³)",
+  "smogAlert": "स्मॉग चेतावनी स्थिति",
+  "sourcesTitle": "पहचाने गए इनडोर प्रदूषण स्रोत",
+  "interventionsTitle": "सस्ते और प्रभावी उपाय (किफायती क्रम में)",
+  "timelineTitle": "24 घंटे का स्मॉग और जोखिम बहीखाता",
+  "membersTitle": "परिवार के सदस्यों की व्यक्तिगत योजना",
+  "loading": "योजना तैयार की जा रही है..."
+}

@@ -1,0 +1,22 @@
+{
+  "siteTitle": "AirLedger",
+  "siteTagline": "Household Clean-Air Exposure & Intervention Planner",
+  "highContrast": "High Contrast",
+  "plainLanguage": "Plain Language",
+  "householdProfile": "Household Profile",
+  "cookingFuel": "Primary Cooking Fuel",
+  "exhaustFan": "Exhaust fan installed in kitchen",
+  "incenseCoils": "Regular incense (agarbatti) or mosquito coils",
+  "sealingDrafts": "Weatherstripped windows and draft seals",
+  "roomVolume": "Room Air Volume (m³)",
+  "purifierCadr": "Existing Purifier CADR (m³/h)",
+  "generatePlan": "Generate Clean-Air Plan",
+  "exposureReduction": "Exposure Reduction",
+  "indoorAvg": "Average Indoor PM2.5 (µg/m³)",
+  "smogAlert": "Smog Alert Status",
+  "sourcesTitle": "Identified Indoor Pollution Sources",
+  "interventionsTitle": "Ranked Low-Cost Interventions",
+  "timelineTitle": "24-Hour Smog Exposure Ledger",
+  "membersTitle": "Family Member Personal Plans",
+  "loading": "Calculating plan..."
+}

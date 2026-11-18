@@ -1,0 +1,40 @@
+# Environment variables and secrets
+.env
+*.env
+!.env.example
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Testing & Coverage
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Build artifacts & distribution
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Dependencies
+node_modules/
+
+# OS specific files
+.DS_Store
+Thumbs.db
