@@ -1,43 +1,9 @@
-/* AirPlan Color Themes - WCAG 2.1 AA Compliant */
-
-:root {
-  /* Neutral Greys & Backgrounds */
-  --bg-app: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-surface-elevated: #f1f5f9;
-  --bg-surface-subtle: #f8fafc;
-
-  /* Text Colors (All >= 4.5:1 contrast against surface) */
-  --text-primary: #0f172a;    /* 18.5:1 on white */
-  --text-secondary: #334155;  /* 9.6:1 on white */
-  --text-muted: #475569;      /* 6.0:1 on white */
-  --text-inverse: #ffffff;
-
-  /* Teal Accent */
-  --color-accent: #0f766e;        /* Teal 700, 6.2:1 */
-  --color-accent-hover: #115e59;  /* Teal 800 */
-  --color-accent-surface: #f0fdfa; /* Teal 50 */
-  --color-accent-border: #0d9488;  /* Teal 600 */
-
-  /* Semantic Status Colors (>= 4.5:1) */
-  --color-success: #166534;        /* 6.6:1 */
-  --color-success-bg: #f0fdf4;
-  --color-warning: #92400e;        /* 5.9:1 */
-  --color-warning-bg: #fffbeb;
-  --color-danger: #991b1b;         /* 7.3:1 */
-  --color-danger-bg: #fef2f2;
-  --color-info: #075985;           /* 7.0:1 */
-  --color-info-bg: #f0f9ff;
-
-  /* UI Borders (>= 3:1 contrast against adjacent background) */
-  --border-strong: #64748b;        /* 3.9:1 against white */
-  --border-subtle: #cbd5e1;
-  --border-card: #e2e8f0;
-
-  /* Focus Indicator (Visible 3px) */
-  --color-focus: #0284c7;
-  --focus-ring: 3px solid var(--color-focus);
-}
+/**
+ * AirPlan Theme Overrides
+ * Cascade Level 5: Dark and high-contrast color token overrides only.
+ * Overrides custom properties defined in tokens.css for high accessibility.
+ * Strictly zero element selectors, layouts, or component classes permitted here.
+ */
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -103,6 +69,4 @@ body.high-contrast {
   --border-card: #ffffff;
 
   --color-focus: #ffff00;
-  --focus-ring: 3px solid #ffff00;
 }
-

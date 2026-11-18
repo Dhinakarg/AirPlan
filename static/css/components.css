@@ -1,4 +1,9 @@
-/* AirPlan Components Stylesheet */
+/**
+ * AirPlan Components Stylesheet
+ * Cascade Level 4: Reusable, accessible UI components and design patterns.
+ * Explicit class selectors only (.card, .btn, .chip) without element entanglement.
+ * One unified media query declaration per responsive breakpoint.
+ */
 
 /* Buttons */
 .btn {
@@ -19,13 +24,17 @@
   transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
-.btn-primary {
+.btn-primary,
+button.primary,
+button[type="submit"] {
   background: var(--color-accent);
   color: var(--text-inverse);
   border-color: var(--color-accent);
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+button.primary:hover,
+button[type="submit"]:hover {
   background: var(--color-accent-hover);
   border-color: var(--color-accent-hover);
 }
@@ -41,15 +50,16 @@
   border-color: var(--text-primary);
 }
 
-.btn-ghost {
+.btn-ghost,
+button.ghost {
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--color-danger);
   border-color: transparent;
 }
 
-.btn-ghost:hover {
-  background: var(--bg-surface-elevated);
-  color: var(--text-primary);
+.btn-ghost:hover,
+button.ghost:hover {
+  background: var(--color-danger-bg);
 }
 
 .btn-ghost-sm {
@@ -85,7 +95,8 @@
   gap: var(--space-3);
 }
 
-.card-title {
+.card-title,
+.card__title {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
@@ -141,8 +152,9 @@
   border-radius: var(--radius-md);
 }
 
-/* Form Elements */
-.form-group {
+/* Form Groups & Fields */
+.form-group,
+.field {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -169,7 +181,7 @@
 .form-input:focus,
 .form-select:focus {
   outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
+  outline-offset: 2px;
 }
 
 .form-help {
@@ -181,6 +193,13 @@
   font-size: var(--text-sm);
   color: var(--color-danger);
   font-weight: var(--font-semibold);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 /* Family Member Compact Cards */
@@ -242,6 +261,55 @@
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--text-muted);
+}
+
+/* Household Summary Card */
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.summary-card h3 {
+  margin: 0 0 var(--space-1);
+  font-size: 1.125rem;
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-card);
+  font-size: 0.9375rem;
+}
+
+.summary-item:last-of-type {
+  border-bottom: none;
+}
+
+.summary-item dt {
+  color: var(--text-muted);
+  font-weight: var(--font-normal);
+  margin: 0;
+}
+
+.summary-item dd {
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+  margin: 0;
+}
+
+.summary-hint {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-surface-elevated);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  border-left: 3px solid var(--color-accent);
 }
 
 /* Undo Toast */
@@ -368,17 +436,11 @@
   min-height: 24px;
 }
 
-/* Card Row: Airing, Outdoor, Inversion */
+/* Metrics Row */
 .metrics-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
-}
-
-@media (max-width: 640px) {
-  .metrics-row {
-    grid-template-columns: 1fr;
-  }
 }
 
 .metric-card {
@@ -607,3 +669,9 @@
   50% { opacity: 1; }
 }
 
+/* Breakpoint: Small screens */
+@media (max-width: 640px) {
+  .metrics-row {
+    grid-template-columns: 1fr;
+  }
+}

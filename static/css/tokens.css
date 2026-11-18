@@ -1,4 +1,9 @@
-/* AirPlan Design Tokens */
+/**
+ * AirPlan Design Tokens
+ * Cascade Level 1: Variable declarations only.
+ * Defines foundational scales for spacing, typography, radii, and color palettes.
+ * No element or class selectors are permitted in this stylesheet.
+ */
 
 :root {
   /* Typography System */
@@ -42,5 +47,41 @@
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
-}
 
+  /* Neutral Greys & Backgrounds */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-subtle: #f8fafc;
+
+  /* Text Colors (All >= 4.5:1 contrast against surface) */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #475569;
+  --text-inverse: #ffffff;
+
+  /* Teal Accent */
+  --color-accent: #0f766e;
+  --color-accent-hover: #115e59;
+  --color-accent-surface: #f0fdfa;
+  --color-accent-border: #0d9488;
+
+  /* Semantic Status Colors */
+  --color-success: #166534;
+  --color-success-bg: #f0fdf4;
+  --color-warning: #92400e;
+  --color-warning-bg: #fffbeb;
+  --color-danger: #991b1b;
+  --color-danger-bg: #fef2f2;
+  --color-info: #075985;
+  --color-info-bg: #f0f9ff;
+
+  /* UI Borders */
+  --border-strong: #64748b;
+  --border-subtle: #cbd5e1;
+  --border-card: #e2e8f0;
+
+  /* Focus Indicator */
+  --color-focus: #0284c7;
+  --focus-ring: 3px solid var(--color-focus);
+}

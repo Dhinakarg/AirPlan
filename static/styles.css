@@ -1,9 +1,12 @@
-/* AirPlan Unified Stylesheet
-   Imports modular design system tokens, themes, base resets, layout grids, and components.
-*/
+/**
+ * AirPlan Master Stylesheet
+ * Strict cascade ordering for application styles.
+ * Order: Tokens -> Base -> Layout -> Components -> Themes.
+ * No inline selectors permitted in this aggregator stylesheet.
+ */
 
 @import 'css/tokens.css';
-@import 'css/themes.css';
 @import 'css/base.css';
 @import 'css/layout.css';
 @import 'css/components.css';
+@import 'css/themes.css';

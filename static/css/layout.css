@@ -1,4 +1,16 @@
-/* AirPlan Layout Stylesheet */
+/**
+ * AirPlan Layout Stylesheet
+ * Cascade Level 3: Grid architectures, containers, and structural regions.
+ * Manages responsive viewport adaptations, screen flows, and view geometry.
+ * One unified media query declaration per responsive breakpoint.
+ */
+
+main {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding-bottom: var(--space-8);
+}
 
 .app-container {
   max-width: var(--container-max);
@@ -8,13 +20,6 @@
   flex-direction: column;
   gap: var(--space-6);
   min-height: 100vh;
-}
-
-@media (max-width: 640px) {
-  .app-container {
-    padding: var(--space-4) var(--gutter-mobile);
-    gap: var(--space-5);
-  }
 }
 
 /* Header */
@@ -111,22 +116,7 @@
   color: var(--text-inverse);
 }
 
-@media (max-width: 640px) {
-  .stepper-list {
-    flex-direction: column;
-  }
-  .stepper-item {
-    justify-content: flex-start;
-    padding: var(--space-2) var(--space-4);
-    border-bottom: 1px solid var(--border-card);
-  }
-  .stepper-item[aria-current="step"] {
-    border-bottom: 1px solid var(--border-card);
-    border-left: 4px solid var(--color-accent);
-  }
-}
-
-/* Secondary Navigation (shown after plan is generated) */
+/* Secondary Navigation */
 .secondary-nav {
   margin-top: var(--space-6);
   padding-top: var(--space-5);
@@ -175,7 +165,7 @@
   color: var(--text-inverse);
 }
 
-/* Grid Layouts */
+/* Base Grids */
 .grid-2col {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -188,23 +178,15 @@
   gap: var(--space-4);
 }
 
-@media (max-width: 640px) {
-  .grid-2col,
-  .grid-3col {
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-  }
-}
-
 /* Screen Sections */
-.layout-screen[hidden] {
-  display: none !important;
-}
-
-.layout-screen {
+.layout-screen:not([hidden]) {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+}
+
+.layout-screen[hidden] {
+  display: none;
 }
 
 /* Footer */
@@ -220,3 +202,74 @@
   gap: var(--space-2);
 }
 
+/* Breakpoint: Small screens */
+@media (max-width: 640px) {
+  .app-container {
+    padding: var(--space-4) var(--gutter-mobile);
+    gap: var(--space-5);
+  }
+  .stepper-list {
+    flex-direction: column;
+  }
+  .stepper-item {
+    justify-content: flex-start;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--border-card);
+  }
+  .stepper-item[aria-current="step"] {
+    border-bottom: 1px solid var(--border-card);
+    border-left: 4px solid var(--color-accent);
+  }
+  .grid-2col,
+  .grid-3col {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}
+
+@media (min-width: 640px) {
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+}
+
+/* Breakpoint: Tablet / Mobile layouts */
+@media (max-width: 959px) {
+  .step-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .plan-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+}
+
+/* Breakpoint: Desktop Two-Column and 12-col Grids */
+@media (min-width: 960px) {
+  .step-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: var(--space-6);
+    align-items: start;
+  }
+  .step-aside {
+    position: sticky;
+    top: var(--space-6);
+  }
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+  .grid-col-12 {
+    grid-column: span 12;
+  }
+  .grid-col-4 {
+    grid-column: span 4;
+  }
+}
