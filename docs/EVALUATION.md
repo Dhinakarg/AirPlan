@@ -1,4 +1,4 @@
-# AirLedger Evaluation Framework & Verification Evidence
+# AirPlan Evaluation Framework & Verification Evidence
 
 This document maps the six core technical evaluation criteria to concrete codebase evidence (source files, test names, verification commands, and real test counts), followed by the complete Accessibility & Universal Design Audit Log.
 
@@ -73,7 +73,7 @@ flowchart LR
    - *Regression Test*: `tests/a11y/test_accessibility.py::test_main_landmark_has_tabindex`.
 
 5. **Multi-Attribute AQI Discrimination (WCAG 1.4.1 Use of Color)**
-   - *Status*: Verified compliant. AirLedger never relies solely on green/yellow/red color coding to convey air quality severity. Every AQI classification combines three distinct perceptual attributes:
+   - *Status*: Verified compliant. AirPlan never relies solely on green/yellow/red color coding to convey air quality severity. Every AQI classification combines three distinct perceptual attributes:
      - Numerical PM2.5 range (e.g. `121-250 ug/m3`)
      - Category label & emoji icon (e.g. `Very Poor 🔴`)
      - Tactile geometric pattern descriptor (`[Solid Dot]`, `[Diagonal Slash]`, `[Horizontal Stripe]`, `[Crosshatch]`, `[Stippled Grid]`).

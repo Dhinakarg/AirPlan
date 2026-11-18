@@ -1,4 +1,4 @@
-"""Domain constants, physical units, and regulatory thresholds for AirLedger.
+"""Domain constants, physical units, and regulatory thresholds for AirPlan.
 
 All factors carry explicit physical units and documented provenance assumptions.
 """

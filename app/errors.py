@@ -1,9 +1,9 @@
-"""Domain exception hierarchy for AirLedger."""
+"""Domain exception hierarchy for AirPlan."""
 
 from typing import Any
 
 
-class AirLedgerError(Exception):
+class AirPlanError(Exception):
     """Base exception for all domain errors."""
 
     def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
@@ -18,21 +18,21 @@ class AirLedgerError(Exception):
         self.details = details or {}
 
 
-class ValidationError(AirLedgerError):
+class ValidationError(AirPlanError):
     """Raised when data fails domain validation rules."""
 
 
-class SimulationError(AirLedgerError):
+class SimulationError(AirPlanError):
     """Raised when aerosol or exposure calculation fails."""
 
 
-class AirDataError(AirLedgerError):
+class AirDataError(AirPlanError):
     """Raised when air quality data fetching or parsing fails."""
 
 
-class AIError(AirLedgerError):
+class AIError(AirPlanError):
     """Raised when GenAI response generation or validation fails."""
 
 
-class NotFoundError(AirLedgerError):
+class NotFoundError(AirPlanError):
     """Raised when a requested resource is not found."""

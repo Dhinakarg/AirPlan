@@ -1,5 +1,8 @@
 FROM python:3.11-slim AS base
 
+LABEL org.opencontainers.image.title="AirPlan"
+LABEL org.opencontainers.image.description="Plan your family's day around the smog."
+
 # Install curl for container healthcheck and security updates
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \

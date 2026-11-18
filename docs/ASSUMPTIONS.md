@@ -1,4 +1,4 @@
-# AirLedger Modeling Assumptions & Domain Constant Provenance
+# AirPlan Modeling Assumptions & Domain Constant Provenance
 
 This document records the physical meaning, literature rationale, and confidence rating for every domain factor in [app/constants.py](file:///d:/Air%20Quality%20Assistant/app/constants.py), followed by verified findings from the Open-Meteo meteorological API integration audit.
 

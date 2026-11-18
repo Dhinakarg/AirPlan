@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "airledger"
+name = "airplan"
 version = "0.1.0"
 description = "GenAI-assisted household clean-air planner for winter smog"
 readme = "README.md"

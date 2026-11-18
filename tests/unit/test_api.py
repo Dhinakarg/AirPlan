@@ -1,4 +1,4 @@
-"""Unit and functional test suite for AirLedger API endpoints and security middleware."""
+"""Unit and functional test suite for AirPlan API endpoints and security middleware."""
 
 from http import HTTPStatus
 from typing import Any

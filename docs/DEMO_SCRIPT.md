@@ -1,6 +1,6 @@
-# AirLedger 3-Minute Live Demonstration Script
+# AirPlan 3-Minute Live Demonstration Script
 
-This script provides an exact, step-by-step walkthrough to present AirLedger in a 3-minute live demonstration or evaluation video.
+This script provides an exact, step-by-step walkthrough to present AirPlan in a 3-minute live demonstration or evaluation video.
 
 ---
 
@@ -27,11 +27,11 @@ flowchart LR
 ### Minute 1 (0:00 – 1:00): Zero-Setup Launch & Universal Accessibility
 
 **Narrative:**
-> *"Welcome to AirLedger, an open-source, offline-first clean-air planner engineered for families in severe winter smog. Notice that the application launched instantly with zero build step, zero tracking cookies, and zero API key requirement."*
+> *"Welcome to AirPlan, an open-source, offline-first clean-air planner engineered for families in severe winter smog. Notice that the application launched instantly with zero build step, zero tracking cookies, and zero API key requirement."*
 
 **Actions:**
 1. **Show Header & Offline Resilience**:
-   - Point out the active status banner: `"Demo data (Delhi Winter Smog)"`. Mention that AirLedger runs seamlessly offline or with live Open-Meteo atmospheric forecasts.
+   - Point out the active status banner: `"Demo data (Delhi Winter Smog)"`. Mention that AirPlan runs seamlessly offline or with live Open-Meteo atmospheric forecasts.
 2. **Toggle High-Contrast Mode**:
    - Click the **"Contrast"** toggle in the top header.
    - *Callout*: *"Every color element instantly switches to high-contrast monochrome with contrast ratios exceeding 7:1 for low-vision readability."*
@@ -47,7 +47,7 @@ flowchart LR
 ### Minute 2 (1:00 – 2:00): Household Ledger & Atmospheric Ventilation Window
 
 **Narrative:**
-> *"Air pollution doesn't affect everyone equally. An infant or an asthmatic grandmother breathes differently than a healthy adult. AirLedger builds personalized hour-by-hour exposure models."*
+> *"Air pollution doesn't affect everyone equally. An infant or an asthmatic grandmother breathes differently than a healthy adult. AirPlan builds personalized hour-by-hour exposure models."*
 
 **Actions:**
 1. **Family Setup**:
@@ -59,7 +59,7 @@ flowchart LR
    - Navigate to the **"Day Ledger"** tab.
    - Point to Aarav's routine: sleeping at home, cooking in kitchen, attending school, and outdoor exercise at 17:00 (5:00 PM).
    - Click **"Suggest a Better Day"**:
-     - *Callout*: *"AirLedger detects that 17:00 coincides with the evening smog inversion spike. It automatically suggests shifting outdoor exercise to the 14:00 solar afternoon dip."*
+     - *Callout*: *"AirPlan detects that 17:00 coincides with the evening smog inversion spike. It automatically suggests shifting outdoor exercise to the 14:00 solar afternoon dip."*
    - Click **"Generate Clean-Air Plan"**.
 3. **Results Screen**:
    - Show the **Exposure Index** cards:
@@ -68,7 +68,7 @@ flowchart LR
    - Show the **24-Hour Diurnal Exposure Chart** and click **"Show Accessible Data Table"** beneath it.
    - Point out the **Ventilation Window Card**:
      - Optimal interval: `13:00 - 15:00` (mean $PM_{2.5} \approx 77\,\mu\text{g/m}^3$).
-     - *Callout*: *"AirLedger identifies that opening windows at 07:00 is dangerous due to ground-level smog trapping, but an atmospheric boundary-layer expansion opens a safe 2-hour airing window in the afternoon."*
+     - *Callout*: *"AirPlan identifies that opening windows at 07:00 is dangerous due to ground-level smog trapping, but an atmospheric boundary-layer expansion opens a safe 2-hour airing window in the afternoon."*
 
 ---
 
@@ -87,14 +87,14 @@ flowchart LR
      - Sweeping: **"Dry broom"**
      - Leave "Indoor PM2.5 sensor reading" blank.
    - Click **"Analyze Indoor Sources"**.
-   - *Callout*: *"Notice the findings badges say **'Suspected'**. AirLedger refuses to claim 'detection' without a physical sensor reading. Now, enter `180` in the sensor box and re-analyze—the badge flips to **'Measured'** with exact evidence."*
+   - *Callout*: *"Notice the findings badges say **'Suspected'**. AirPlan refuses to claim 'detection' without a physical sensor reading. Now, enter `180` in the sensor box and re-analyze—the badge flips to **'Measured'** with exact evidence."*
 2. **Ranked Low-Cost Interventions**:
    - Return to the **"Results"** tab and scroll to **"Ranked Interventions"**.
    - Click to expand the first **"Impact Receipt"** (`<details>`):
      - Show the **DIY Corsi-Rosenthal Box Purifier** (Cost: ₹400/mo, Impact: 80%, Score: 0.400).
      - Show the stated assumptions and literature provenance.
-3. **Ask AirLedger & Clinical Red-Flag Override**:
-   - Click the **"Ask AirLedger"** tab.
+3. **Ask AirPlan & Clinical Red-Flag Override**:
+   - Click the **"Ask AirPlan"** tab.
    - First, type a clinical emergency question:
      > `"My mother has severe chest pain and cannot breathe, which room should she sit in?"`
    - Click **"Ask Question"**.
@@ -108,4 +108,4 @@ flowchart LR
 
 ## Concluding Statement (Last 15 Seconds)
 
-> *"AirLedger proves that clean air planning does not require ₹50,000 commercial equipment or hallucinating AI bots. Through pure atmospheric physics, strict architectural guardrails, and inclusive design, AirLedger puts actionable clean-air intelligence into the hands of every family facing severe winter smog."*
+> *"AirPlan proves that clean air planning does not require ₹50,000 commercial equipment or hallucinating AI bots. Through pure atmospheric physics, strict architectural guardrails, and inclusive design, AirPlan puts actionable clean-air intelligence into the hands of every family facing severe winter smog."*

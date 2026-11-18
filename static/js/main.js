@@ -1,5 +1,5 @@
 /**
- * @fileoverview Main application orchestrator and screen wiring for AirLedger.
+ * @fileoverview Main application orchestrator and screen wiring for AirPlan.
  */
 
 import { announce, isSpeechSupported, setTextSize, speakText, stopSpeaking, toggleHighContrast, toggleSimpleLanguage } from './a11y.js';
@@ -93,7 +93,7 @@ function bindHeaderControls() {
         isSpeaking = false;
       } else {
         const sec = document.querySelector('section.layout-screen:not([hidden])');
-        speakText(sec ? (sec.textContent || '').substring(0, 500) : 'AirLedger', getState().language);
+        speakText(sec ? (sec.textContent || '').substring(0, 500) : 'AirPlan', getState().language);
         isSpeaking = true;
       }
       updateControlLabels();
@@ -136,7 +136,7 @@ export function initApp() {
   bindHeaderControls();
   subscribe(() => renderAllScreens());
   renderAllScreens();
-  announce('AirLedger ready.');
+  announce('AirPlan ready.');
 }
 
 if (typeof document !== 'undefined') {

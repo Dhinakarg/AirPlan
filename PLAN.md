@@ -1,6 +1,6 @@
-# AirLedger Implementation Plan
+# AirPlan Implementation Plan
 
-AirLedger is a GenAI-assisted household clean-air planner for families and communities facing severe winter smog.
+AirPlan is a GenAI-assisted household clean-air planner for families and communities facing severe winter smog.
 It builds hour-by-hour exposure plans per family member, identifies likely indoor pollution sources, ranks low-cost interventions, and shows every choice's impact with stated assumptions and confidence (provenance).
 
 ## 1. Directory Structure & Architecture

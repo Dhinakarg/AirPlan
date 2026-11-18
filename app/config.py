@@ -15,7 +15,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    app_name: str = Field(default="AirLedger", description="Service identifier")
+    app_name: str = Field(default="AirPlan", description="Service identifier")
     environment: str = Field(default="development", description="Runtime environment")
     host: str = Field(default="127.0.0.1", description="Bind host address")
     port: int = Field(default=8000, description="Bind port number")

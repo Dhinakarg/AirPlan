@@ -1,4 +1,4 @@
-"""FastAPI application entrypoint for AirLedger."""
+"""FastAPI application entrypoint for AirPlan."""
 
 import logging
 from pathlib import Path
@@ -14,9 +14,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.middleware import SecurityMiddleware
 from app.api.routes import router as api_router
 from app.config import get_settings
-from app.errors import AirLedgerError, NotFoundError
+from app.errors import AirPlanError, NotFoundError
 
-logger = logging.getLogger("airledger")
+logger = logging.getLogger("airplan")
 
 settings = get_settings()
 
@@ -48,8 +48,8 @@ if static_path.exists():
     app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
 
-@app.exception_handler(AirLedgerError)
-async def domain_error_handler(request: Request, exc: AirLedgerError) -> JSONResponse:
+@app.exception_handler(AirPlanError)
+async def domain_error_handler(request: Request, exc: AirPlanError) -> JSONResponse:
     """Handle domain exceptions with sanitized error payloads.
 
     Args:

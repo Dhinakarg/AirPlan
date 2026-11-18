@@ -1,5 +1,5 @@
 /**
- * @fileoverview Network API client for communicating with AirLedger backend endpoints.
+ * @fileoverview Network API client for communicating with AirPlan backend endpoints.
  */
 
 /**

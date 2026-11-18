@@ -1,5 +1,5 @@
 /**
- * @fileoverview Screen 6: Ask AirLedger assistant Q&A with clinical red-flag alert.
+ * @fileoverview Screen 6: Ask AirPlan assistant Q&A with clinical red-flag alert.
  */
 
 import { announce, setFocus, showError } from '../a11y.js';
@@ -8,7 +8,7 @@ import { t } from '../i18n.js';
 import { getState, setState } from '../state.js';
 
 /**
- * Render Ask AirLedger Screen.
+ * Render Ask AirPlan Screen.
  * @param {HTMLElement} container - Target container.
  * @returns {void}
  */

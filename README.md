@@ -1,21 +1,21 @@
-# AirLedger
+# AirPlan
 
-> **GenAI-assisted household clean-air planner for families and communities facing severe winter smog.**
+> **Plan your family's day around the smog.**
 
-[![CI](https://github.com/Dhinakarg/AirLedger/actions/workflows/ci.yml/badge.svg)](https://github.com/Dhinakarg/AirLedger/actions)
+[![CI](https://github.com/Dhinakarg/AirPlan/actions/workflows/ci.yml/badge.svg)](https://github.com/Dhinakarg/AirPlan/actions)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![Coverage](https://img.shields.io/badge/Coverage-96.80%25-brightgreen)
 ![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA-green)
 ![Frontend](https://img.shields.io/badge/Frontend-Vanilla%20ES%20Modules-yellow)
 ![License](https://img.shields.io/badge/License-MIT-teal)
 
-AirLedger is an open-source, offline-first clean-air planner built specifically for households in the Indo-Gangetic Plain and urban Global South (e.g., Delhi-NCR, Lahore, Patna, Lucknow) navigating hazardous winter air pollution ($PM_{2.5} > 250\text{--}600\,\mu\text{g/m}^3$). It models personalized hour-by-hour particulate exposure per family member, detects high-emission indoor sources, discovers atmospheric ventilation windows, ranks low-cost interventions with transparent physical receipts, and answers clean-air inquiries with verifiable, hallucination-free guidance.
+AirPlan is an open-source, offline-first clean-air planner built specifically for households in the Indo-Gangetic Plain and urban Global South (e.g., Delhi-NCR, Lahore, Patna, Lucknow) navigating hazardous winter air pollution ($PM_{2.5} > 250\text{--}600\,\mu\text{g/m}^3$). It models personalized hour-by-hour particulate exposure per family member, detects high-emission indoor sources, discovers atmospheric ventilation windows, ranks low-cost interventions with transparent physical receipts, and answers clean-air inquiries with verifiable, hallucination-free guidance.
 
 ---
 
 ## Visual Showcase & User Interface
 
-AirLedger features a responsive design system with a 1120px centered container, a 3-step progress stepper (Family & Home → Day Routine → Clean-Air Plan), a two-column desktop layout with a sticky live household summary card, and a mobile view with zero horizontal overflow:
+AirPlan features a responsive design system with a 1120px centered container, a 3-step progress stepper (Family & Home → Day Routine → Clean-Air Plan), a two-column desktop layout with a sticky live household summary card, and a mobile view with zero horizontal overflow:
 
 | Desktop Two-Column View (Light Theme) | Desktop Two-Column View (Dark Theme) |
 | :---: | :---: |
@@ -44,7 +44,7 @@ AirLedger features a responsive design system with a 1120px centered container, 
 
 ## Approach & Logic: The Pure Engine vs. Guarded AI Split
 
-AirLedger enforces a strict architectural division between deterministic physical modeling and generative language synthesis. All numbers, rankings, and physical metrics are computed exclusively by a pure Python engine. The generative AI layer is restricted to narrative formatting using server-injected template placeholders.
+AirPlan enforces a strict architectural division between deterministic physical modeling and generative language synthesis. All numbers, rankings, and physical metrics are computed exclusively by a pure Python engine. The generative AI layer is restricted to narrative formatting using server-injected template placeholders.
 
 ```mermaid
 flowchart TD
@@ -115,11 +115,11 @@ flowchart TD
 
 ## Quick Start (3 Commands, Zero API Key Required)
 
-AirLedger runs fully offline out of the box using bundled winter smog meteorological datasets:
+AirPlan runs fully offline out of the box using bundled winter smog meteorological datasets:
 
 ```bash
 # 1. Clone repository and set up Python 3.11+ virtual environment
-git clone https://github.com/Dhinakarg/AirLedger.git && cd AirLedger
+git clone https://github.com/Dhinakarg/AirPlan.git && cd AirPlan
 python -m venv .venv && source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # 2. Install production dependencies
@@ -327,7 +327,7 @@ Security & Code Complexity Audits:
   },
   "data_source": "sample",
   "provenance": {
-    "text": "AirLedger deterministic multi-member diurnal exposure model v1.0",
+    "text": "AirPlan deterministic multi-member diurnal exposure model v1.0",
     "confidence": "high"
   }
 }
@@ -364,7 +364,7 @@ Security & Code Complexity Audits:
 ## Medical Disclaimer
 
 > [!CAUTION]
-> **AirLedger is an informational exposure planning and environmental decision-support tool. It is not a medical device, diagnostic system, or clinical treatment platform.**
+> **AirPlan is an informational exposure planning and environmental decision-support tool. It is not a medical device, diagnostic system, or clinical treatment platform.**
 >
 > If anyone in your household experiences acute respiratory distress, severe chest tightness, persistent shortness of breath, gasping, coughing up blood, bluish discoloration of the lips or face, or fainting, **immediately discontinue application use and seek emergency medical care at the nearest hospital or emergency clinic.** Ambient scheduling and indoor air cleaners cannot treat medical emergencies.
 

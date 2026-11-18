@@ -6,7 +6,7 @@ from http import HTTPStatus
 import pytest
 from starlette.testclient import TestClient
 
-from app.errors import AirLedgerError, ValidationError
+from app.errors import AirPlanError, ValidationError
 
 MODULES_TO_IMPORT = [
     "app",
@@ -70,6 +70,6 @@ def test_root_endpoint(client: TestClient) -> None:
 def test_domain_error_instantiation() -> None:
     """Smoke test: verify domain error instances."""
     err = ValidationError("Invalid value", {"field": "fuel"})
-    assert isinstance(err, AirLedgerError)
+    assert isinstance(err, AirPlanError)
     assert err.message == "Invalid value"
     assert err.details["field"] == "fuel"

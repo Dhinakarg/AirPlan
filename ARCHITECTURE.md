@@ -1,12 +1,12 @@
-# AirLedger System Architecture
+# AirPlan System Architecture
 
-This document describes the architectural layers, import boundaries, data lifecycle for plan generation, and the mathematical guarantees that prevent generative AI hallucinations in AirLedger.
+This document describes the architectural layers, import boundaries, data lifecycle for plan generation, and the mathematical guarantees that prevent generative AI hallucinations in AirPlan.
 
 ---
 
 ## 1. Architectural Layers & One-Way Import Rules
 
-AirLedger enforces a strict, hierarchical **one-way import policy**:
+AirPlan enforces a strict, hierarchical **one-way import policy**:
 
 ```mermaid
 graph TD
@@ -129,7 +129,7 @@ sequenceDiagram
 
 ## 3. Why the LLM Cannot Invent Numbers
 
-In conventional AI applications, generative models hallucinate statistics, misquote thresholds, or give contradictory recommendations. AirLedger eliminates numerical hallucinations through **structural constraint, syntactic validation, and deterministic backend substitution**:
+In conventional AI applications, generative models hallucinate statistics, misquote thresholds, or give contradictory recommendations. AirPlan eliminates numerical hallucinations through **structural constraint, syntactic validation, and deterministic backend substitution**:
 
 ### 1. Separation of Physics from Prose
 The generative model is never asked to calculate doses, reductions, percentages, or concentrations. All mathematical operations are evaluated before the AI layer is invoked:

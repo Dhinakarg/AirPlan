@@ -12,6 +12,6 @@ test('frontend smoke test: verify state module initializes cleanly', async () =>
 test('frontend smoke test: verify i18n dictionary functions', async () => {
   const i18nModule = await import('../../static/js/i18n.js');
   assert.equal(typeof i18nModule.t, 'function');
-  assert.equal(i18nModule.t('siteTitle', 'en'), 'AirLedger');
+  assert.equal(i18nModule.t('siteTitle', 'en'), 'AirPlan');
 });
 

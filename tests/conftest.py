@@ -1,4 +1,4 @@
-"""Test configuration and shared fixtures for AirLedger."""
+"""Test configuration and shared fixtures for AirPlan."""
 
 from typing import Any
 

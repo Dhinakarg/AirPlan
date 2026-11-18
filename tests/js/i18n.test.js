@@ -27,8 +27,8 @@ test('i18n: full key parity between en.json and JS DICTIONARY', () => {
 });
 
 test('i18n: t() returns correct translation and falls back to key when missing', () => {
-  assert.equal(t('siteTitle', 'en'), 'AirLedger');
-  assert.match(t('siteTitle', 'hi'), /एयरलेजर/);
+  assert.equal(t('siteTitle', 'en'), 'AirPlan');
+  assert.match(t('siteTitle', 'hi'), /एयरप्लान/);
   assert.equal(t('nonexistent_key', 'en'), 'nonexistent_key');
 });
 
