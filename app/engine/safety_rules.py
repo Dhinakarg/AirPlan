@@ -3,7 +3,11 @@
 import re
 from typing import Final, Literal
 
-from app.constants import RED_FLAG_OVERRIDE_ACTION
+from app.constants import (
+    RED_FLAG_NEGATION_WINDOW_CHARS_EN,
+    RED_FLAG_NEGATION_WINDOW_CHARS_HI,
+    RED_FLAG_OVERRIDE_ACTION,
+)
 from app.engine.models import RedFlag
 
 # English symptom patterns mapped to canonical symptom labels
@@ -49,7 +53,7 @@ NEGATION_REGEX_HI: Final[re.Pattern[str]] = re.compile(r"(नहीं|ना|�
 
 def _is_negated_english(text: str, start_idx: int) -> bool:
     """Check if preceding tokens in the clause negate the symptom."""
-    lookback = max(0, start_idx - 30)
+    lookback = max(0, start_idx - RED_FLAG_NEGATION_WINDOW_CHARS_EN)
     preceding = text[lookback:start_idx].lower()
     last_stop = max(preceding.rfind("."), preceding.rfind(";"), preceding.rfind(","))
     clause = preceding[last_stop + 1 :] if last_stop != -1 else preceding
@@ -58,8 +62,8 @@ def _is_negated_english(text: str, start_idx: int) -> bool:
 
 def _is_negated_hindi(text: str, start_idx: int, end_idx: int) -> bool:
     """Check if preceding or immediately following Hindi tokens negate the symptom."""
-    pre_window = text[max(0, start_idx - 25) : start_idx]
-    post_window = text[end_idx : min(len(text), end_idx + 25)]
+    pre_window = text[max(0, start_idx - RED_FLAG_NEGATION_WINDOW_CHARS_HI) : start_idx]
+    post_window = text[end_idx : min(len(text), end_idx + RED_FLAG_NEGATION_WINDOW_CHARS_HI)]
     return bool(NEGATION_REGEX_HI.search(pre_window) or NEGATION_REGEX_HI.search(post_window))
 
 

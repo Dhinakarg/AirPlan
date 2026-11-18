@@ -2,7 +2,23 @@
 
 from typing import Literal
 
-from app.constants import INDOOR_PM25_ELEVATED_THRESHOLD_UG_M3
+from app.constants import (
+    INDOOR_PM25_ELEVATED_THRESHOLD_UG_M3,
+    LIKELIHOOD_AMBIENT_INFILTRATION,
+    LIKELIHOOD_BIOMASS_DEFAULT,
+    LIKELIHOOD_BIOMASS_INTERNAL_EXHAUST,
+    LIKELIHOOD_BIOMASS_NO_EXHAUST,
+    LIKELIHOOD_BIOMASS_VENTED_EXHAUST,
+    LIKELIHOOD_DRY_SWEEPING,
+    LIKELIHOOD_INCENSE_BURNING,
+    LIKELIHOOD_LPG_DEFAULT,
+    LIKELIHOOD_LPG_INTERNAL_EXHAUST,
+    LIKELIHOOD_LPG_NO_EXHAUST,
+    LIKELIHOOD_LPG_VENTED_EXHAUST,
+    LIKELIHOOD_MOSQUITO_COIL,
+    LIKELIHOOD_PET_DANDER,
+    LIKELIHOOD_TOBACCO_SMOKE,
+)
 from app.engine.models import (
     CookingFuel,
     HomeSurvey,
@@ -18,11 +34,11 @@ def _eval_cooking(survey: HomeSurvey, status: SourceStatus) -> SourceFinding:
     """Evaluate cooking fuel and kitchen exhaust configuration."""
     if survey.cooking_fuel in {CookingFuel.WOOD, CookingFuel.BIOMASS}:
         exhaust_penalties = {
-            KitchenExhaust.NONE: 0.95,
-            KitchenExhaust.INTERNAL: 0.85,
-            KitchenExhaust.VENTED: 0.60,
+            KitchenExhaust.NONE: LIKELIHOOD_BIOMASS_NO_EXHAUST,
+            KitchenExhaust.INTERNAL: LIKELIHOOD_BIOMASS_INTERNAL_EXHAUST,
+            KitchenExhaust.VENTED: LIKELIHOOD_BIOMASS_VENTED_EXHAUST,
         }
-        like = exhaust_penalties.get(survey.kitchen_exhaust, 0.90)
+        like = exhaust_penalties.get(survey.kitchen_exhaust, LIKELIHOOD_BIOMASS_DEFAULT)
         fuel_val = survey.cooking_fuel.value
         exh_val = survey.kitchen_exhaust.value
         return SourceFinding(
@@ -38,11 +54,11 @@ def _eval_cooking(survey: HomeSurvey, status: SourceStatus) -> SourceFinding:
         )
 
     exhaust_penalties = {
-        KitchenExhaust.NONE: 0.50,
-        KitchenExhaust.INTERNAL: 0.35,
-        KitchenExhaust.VENTED: 0.15,
+        KitchenExhaust.NONE: LIKELIHOOD_LPG_NO_EXHAUST,
+        KitchenExhaust.INTERNAL: LIKELIHOOD_LPG_INTERNAL_EXHAUST,
+        KitchenExhaust.VENTED: LIKELIHOOD_LPG_VENTED_EXHAUST,
     }
-    like = exhaust_penalties.get(survey.kitchen_exhaust, 0.40)
+    like = exhaust_penalties.get(survey.kitchen_exhaust, LIKELIHOOD_LPG_DEFAULT)
     fuel_val = survey.cooking_fuel.value
     exh_val = survey.kitchen_exhaust.value
     return SourceFinding(
@@ -64,7 +80,7 @@ def _eval_combustion(survey: HomeSurvey, status: SourceStatus) -> list[SourceFin
         findings.append(
             SourceFinding(
                 source="incense_burning",
-                likelihood=0.80,
+                likelihood=LIKELIHOOD_INCENSE_BURNING,
                 evidence="Regular indoor agarbatti or dhoop incense burning",
                 status=status,
                 fixes=[
@@ -77,7 +93,7 @@ def _eval_combustion(survey: HomeSurvey, status: SourceStatus) -> list[SourceFin
         findings.append(
             SourceFinding(
                 source="mosquito_coil",
-                likelihood=0.85,
+                likelihood=LIKELIHOOD_MOSQUITO_COIL,
                 evidence="Smoldering mosquito coil combustion in sleeping quarters",
                 status=status,
                 fixes=[
@@ -90,7 +106,7 @@ def _eval_combustion(survey: HomeSurvey, status: SourceStatus) -> list[SourceFin
         findings.append(
             SourceFinding(
                 source="tobacco_smoke",
-                likelihood=0.90,
+                likelihood=LIKELIHOOD_TOBACCO_SMOKE,
                 evidence="Active indoor cigarette, bidi, or hookah smoking",
                 status=status,
                 fixes=[
@@ -112,7 +128,7 @@ def _eval_cleaning_and_pets(
         findings.append(
             SourceFinding(
                 source="dry_sweeping_resuspension",
-                likelihood=0.65,
+                likelihood=LIKELIHOOD_DRY_SWEEPING,
                 evidence="Dry broom sweeping resuspending settled surface dust",
                 status=status,
                 fixes=[
@@ -125,7 +141,7 @@ def _eval_cleaning_and_pets(
         findings.append(
             SourceFinding(
                 source="pet_dander",
-                likelihood=0.30,
+                likelihood=LIKELIHOOD_PET_DANDER,
                 evidence="Furred domestic pets present in living areas",
                 status=status,
                 fixes=[
@@ -168,7 +184,7 @@ def score_sources(survey: HomeSurvey) -> list[SourceFinding]:
         findings.append(
             SourceFinding(
                 source="ambient_infiltration",
-                likelihood=0.75,
+                likelihood=LIKELIHOOD_AMBIENT_INFILTRATION,
                 evidence=f"Indoor PM2.5 ({survey.indoor_pm25_reading} ug/m3) exceeds threshold",
                 status="measured",
                 fixes=[

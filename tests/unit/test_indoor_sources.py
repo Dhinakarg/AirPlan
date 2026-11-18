@@ -10,18 +10,9 @@ from app.engine.models import (
 )
 
 
-def test_indoor_sources_suspected_without_reading() -> None:
+def test_indoor_sources_suspected_without_reading(sample_home_survey: HomeSurvey) -> None:
     """Combustion sources without sensor reading are marked strictly as 'suspected'."""
-    survey = HomeSurvey(
-        cooking_fuel=CookingFuel.WOOD,
-        kitchen_exhaust=KitchenExhaust.NONE,
-        incense=True,
-        mosquito_coil=True,
-        smokers=True,
-        sweeping=SweepingType.DRY,
-        indoor_pm25_reading=None,
-    )
-    findings = score_sources(survey)
+    findings = score_sources(sample_home_survey)
     assert len(findings) == 5
     for f in findings:
         assert f.status == "suspected"

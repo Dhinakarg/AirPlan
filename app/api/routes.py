@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query
 from app.api.schemas import (
     AskRequest,
     AskResponse,
+    FamilyMemberInput,
     HomeAnalyzeRequest,
     HomeAnalyzeResponse,
     PlanRequest,
@@ -36,20 +37,24 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.post("/plan", response_model=PlanResponse)
-def plan_endpoint(req: PlanRequest) -> dict[str, Any]:
-    """Build personalized 24-hour clean-air exposure plan and recommendations."""
-    members = [
+def _to_member_inputs(members: list[FamilyMemberInput]) -> list[MemberPlanInput]:
+    """Convert API member request payloads to service domain inputs."""
+    return [
         MemberPlanInput(
             name=m.name,
             age_group=m.age_group,
             sensitivity=m.sensitivity,
             routine=m.routine,
         )
-        for m in req.members
+        for m in members
     ]
+
+
+@router.post("/plan", response_model=PlanResponse)
+def plan_endpoint(req: PlanRequest) -> dict[str, Any]:
+    """Build personalized 24-hour clean-air exposure plan and recommendations."""
     return create_clean_air_plan(
-        members=members,
+        members=_to_member_inputs(req.members),
         home=req.home,
         latitude=req.latitude,
         longitude=req.longitude,

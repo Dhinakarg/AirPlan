@@ -105,10 +105,29 @@ STAGNATION_HOURS: Final[frozenset[int]] = frozenset({20, 21, 22, 23, 0, 1, 2, 3,
 # Baseline index reference level for comparison
 BASELINE_EXPOSURE_INDEX: Final[float] = 100.0
 
-# --- Indoor Pollution Source Scoring Thresholds ---
+# --- Indoor Pollution Source Scoring Thresholds and Likelihoods ---
 # Unit: ug/m3 (24h indoor threshold above which indoor reading indicates active emission)
 # Provenance: Indian NAAQS 24-hour PM2.5 standard for indoor air quality evaluation
 INDOOR_PM25_ELEVATED_THRESHOLD_UG_M3: Final[float] = 60.0
+
+# Unit: Dimensionless subjective likelihood factor (0.0 to 1.0)
+# Provenance: Residential indoor air quality emission studies and combustion source literature
+LIKELIHOOD_BIOMASS_NO_EXHAUST: Final[float] = 0.95
+LIKELIHOOD_BIOMASS_INTERNAL_EXHAUST: Final[float] = 0.85
+LIKELIHOOD_BIOMASS_VENTED_EXHAUST: Final[float] = 0.60
+LIKELIHOOD_BIOMASS_DEFAULT: Final[float] = 0.90
+
+LIKELIHOOD_LPG_NO_EXHAUST: Final[float] = 0.50
+LIKELIHOOD_LPG_INTERNAL_EXHAUST: Final[float] = 0.35
+LIKELIHOOD_LPG_VENTED_EXHAUST: Final[float] = 0.15
+LIKELIHOOD_LPG_DEFAULT: Final[float] = 0.40
+
+LIKELIHOOD_INCENSE_BURNING: Final[float] = 0.80
+LIKELIHOOD_MOSQUITO_COIL: Final[float] = 0.85
+LIKELIHOOD_TOBACCO_SMOKE: Final[float] = 0.90
+LIKELIHOOD_DRY_SWEEPING: Final[float] = 0.65
+LIKELIHOOD_PET_DANDER: Final[float] = 0.30
+LIKELIHOOD_AMBIENT_INFILTRATION: Final[float] = 0.75
 
 # --- Ranking Normalization Weights and Denominators ---
 # Unit: INR / month (normalizing monthly budget cost for cost-effectiveness denominator)
@@ -132,3 +151,7 @@ COMMUNITY_PM25_QUALITATIVE_NOTE: Final[str] = (
 # --- Medical Emergency Red-Flag Protocol ---
 # Rationale: Clinical triage directive that strictly overrides all ambient planner advice
 RED_FLAG_OVERRIDE_ACTION: Final[str] = "seek medical care now"
+
+# Unit: Characters (text lookback and lookahead scanning windows for clinical symptom negation)
+RED_FLAG_NEGATION_WINDOW_CHARS_EN: Final[int] = 30
+RED_FLAG_NEGATION_WINDOW_CHARS_HI: Final[int] = 25

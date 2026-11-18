@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck security test jstest check run docker
+.PHONY: install lint format typecheck security complexity jslines test jstest check run docker
 
 install:
 	pip install -r requirements-dev.txt
@@ -17,13 +17,20 @@ security:
 	bandit -r app -ll -s B101
 	pip-audit -r requirements.txt
 
+complexity:
+	radon cc app -n C
+	radon mi app -n B
+
+jslines:
+	python -c "import glob, sys; files = sorted(glob.glob('static/js/**/*.js', recursive=True)); [print(len(open(f, encoding='utf-8').readlines()), f) for f in files]; over = [f for f in files if len(open(f, encoding='utf-8').readlines()) > 200]; sys.exit(1) if over else None"
+
 test:
 	pytest --cov=app
 
 jstest:
 	node --test tests/js/*.test.js
 
-check: lint typecheck security test jstest
+check: lint typecheck security complexity jslines test jstest
 	@echo "All quality and safety checks passed cleanly!"
 
 run:

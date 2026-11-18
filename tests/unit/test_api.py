@@ -37,29 +37,12 @@ def test_health_endpoints(client: TestClient) -> None:
     assert res3.json()["status"] == "ok"
 
 
-def test_plan_endpoint_happy_path(client: TestClient) -> None:
+def test_plan_endpoint_happy_path(
+    client: TestClient,
+    valid_plan_payload: dict[str, Any],
+) -> None:
     """Verify POST /api/v1/plan produces valid day exposure plan and guidance."""
-    payload: dict[str, Any] = {
-        "members": [
-            {
-                "name": "Dhinakar",
-                "age_group": "adult",
-                "sensitivity": "none",
-                "routine": _valid_routine_blocks(),
-            }
-        ],
-        "home": {
-            "leakiness": "average",
-            "purifier": False,
-            "windows_open_hours": [13, 14],
-        },
-        "latitude": 28.61,
-        "longitude": 77.21,
-        "date": "2026-01-15",
-        "budget_inr": 500.0,
-        "language": "en",
-    }
-    response = client.post("/api/v1/plan", json=payload)
+    response = client.post("/api/v1/plan", json=valid_plan_payload)
     assert response.status_code == HTTPStatus.OK
     data = response.json()
     assert "Dhinakar" in data["members_exposure"]

@@ -1,16 +1,22 @@
 """Test configuration and shared fixtures for AirLedger."""
 
+from typing import Any
+
 import pytest
 from starlette.testclient import TestClient
 
 from app.api.middleware import reset_rate_limiter
 from app.engine.models import (
     Activity,
+    CookingFuel,
     HomeProfile,
+    HomeSurvey,
     HourlyAir,
+    KitchenExhaust,
     Leakiness,
     Mode,
     RoutineBlock,
+    SweepingType,
 )
 from app.main import app
 
@@ -118,3 +124,54 @@ def sample_routine() -> list[RoutineBlock]:
         RoutineBlock(start_hour=18, end_hour=22, activity=Activity.REST, mode=Mode.HOME),
         RoutineBlock(start_hour=22, end_hour=24, activity=Activity.SLEEP, mode=Mode.HOME),
     ]
+
+
+@pytest.fixture
+def valid_routine_dicts() -> list[dict[str, Any]]:
+    """Provide standard valid routine blocks in dictionary format."""
+    return [
+        {"start_hour": 0, "end_hour": 7, "activity": "sleep", "mode": "home"},
+        {"start_hour": 7, "end_hour": 8, "activity": "cook", "mode": "home"},
+        {"start_hour": 8, "end_hour": 18, "activity": "light", "mode": "home"},
+        {"start_hour": 18, "end_hour": 24, "activity": "sleep", "mode": "home"},
+    ]
+
+
+@pytest.fixture
+def valid_plan_payload(valid_routine_dicts: list[dict[str, Any]]) -> dict[str, Any]:
+    """Provide canonical valid payload for POST /api/v1/plan."""
+    return {
+        "members": [
+            {
+                "name": "Dhinakar",
+                "age_group": "adult",
+                "sensitivity": "none",
+                "routine": valid_routine_dicts,
+            }
+        ],
+        "home": {
+            "leakiness": "average",
+            "purifier": False,
+            "windows_open_hours": [13, 14],
+        },
+        "latitude": 28.61,
+        "longitude": 77.21,
+        "date": "2026-01-15",
+        "budget_inr": 500.0,
+        "language": "en",
+    }
+
+
+@pytest.fixture
+def sample_home_survey() -> HomeSurvey:
+    """Provide a standard baseline household survey with biomass and unvented kitchen."""
+    return HomeSurvey(
+        cooking_fuel=CookingFuel.WOOD,
+        kitchen_exhaust=KitchenExhaust.NONE,
+        incense=True,
+        mosquito_coil=True,
+        smokers=True,
+        pets=False,
+        sweeping=SweepingType.DRY,
+        indoor_pm25_reading=None,
+    )
