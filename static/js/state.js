@@ -49,13 +49,13 @@ function createInitialState() {
     },
     members: [
       {
-        name: 'Aarav (Child)',
+        name: 'Aarav',
         age_group: 'child',
         sensitivity: 'asthma_or_heart',
         routine: JSON.parse(JSON.stringify(DEFAULT_ROUTINE)),
       },
       {
-        name: 'Sunita (Adult)',
+        name: 'Sunita',
         age_group: 'adult',
         sensitivity: 'none',
         routine: JSON.parse(JSON.stringify(DEFAULT_ROUTINE)),

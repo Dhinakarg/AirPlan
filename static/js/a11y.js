@@ -2,6 +2,8 @@
  * @fileoverview Accessibility utilities for screen readers, live announcements, and focus management.
  */
 
+let lastFocusedElement = null;
+
 /**
  * Deliver dynamic text announcements to assistive technology screen readers.
  * @param {string} message - Announcement string.
@@ -128,4 +130,66 @@ export function setFocus(element) {
   if (element && typeof element.focus === 'function') {
     element.focus();
   }
+}
+
+/**
+ * Open accessible dialog with focus trap and return-focus behavior.
+ * @param {HTMLDialogElement} dialog - Dialog element.
+ * @param {HTMLElement} [trigger] - Element to return focus to upon closing.
+ * @returns {() => void} Cleanup handler.
+ */
+export function openModalDialog(dialog, trigger) {
+  if (!dialog) return () => {};
+  lastFocusedElement = trigger || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  if (typeof dialog.showModal === 'function') {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute('open', '');
+  }
+
+  const focusables = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (focusables.length > 0 && focusables[0] instanceof HTMLElement) {
+    focusables[0].focus();
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeModalDialog(dialog);
+    } else if (e.key === 'Tab') {
+      const items = Array.from(focusables).filter(el => !el.hasAttribute('disabled'));
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
+
+  dialog.addEventListener('keydown', handleKeyDown);
+  announce('Settings dialog opened');
+  return () => dialog.removeEventListener('keydown', handleKeyDown);
+}
+
+/**
+ * Close accessible dialog and return focus to triggering element.
+ * @param {HTMLDialogElement} dialog - Target dialog element.
+ * @returns {void}
+ */
+export function closeModalDialog(dialog) {
+  if (!dialog) return;
+  if (typeof dialog.close === 'function') {
+    dialog.close();
+  } else {
+    dialog.removeAttribute('open');
+  }
+  if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+    lastFocusedElement.focus();
+  }
+  announce('Settings dialog closed');
 }

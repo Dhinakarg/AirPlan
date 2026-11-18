@@ -1,0 +1,48 @@
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --text: #14212b; --muted: #4a5b68;
+  --border: #c9d3da; --accent: #0b7a75; --accent-text: #ffffff;
+  --danger: #b42318; --focus: #1d4ed8; --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1419; --surface: #151f27; --text: #e8eef2; --muted: #a3b3bf;
+    --border: #3a4b58; --accent: #3cc7bf; --accent-text: #06201f;
+    --danger: #ff8a80; --focus: #8ab4ff;
+  }
+}
+body { background: var(--bg); color: var(--text);
+  font: 400 1rem/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+main h2 { font-size: 1.5rem; font-weight: 600; margin: 0 0 8px; }
+main p, main small { color: var(--muted); }
+
+main fieldset, main section > div, main .card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin: 0 0 16px;
+}
+main label { display: block; font-weight: 600; margin: 16px 0 6px; }
+main input[type="text"], main input[type="number"], main select, main textarea {
+  display: block; width: 100%; min-height: 44px; padding: 8px 12px;
+  font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+main input[type="checkbox"] { width: 24px; height: 24px; margin-right: 8px;
+  vertical-align: middle; accent-color: var(--accent); }
+main label:has(input[type="checkbox"]) { display: flex; align-items: center;
+  font-weight: 400; min-height: 44px; }
+main input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+main button { min-height: 44px; padding: 8px 20px; font: 600 1rem inherit;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); cursor: pointer; }
+main button.primary, main button[type="submit"] {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+main button.ghost { background: transparent; border-color: transparent;
+  color: var(--danger); }
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--focus); outline-offset: 2px; }
+@media (min-width: 640px) {
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+

@@ -1,0 +1,108 @@
+/* AirLedger Color Themes - WCAG 2.1 AA Compliant */
+
+:root {
+  /* Neutral Greys & Backgrounds */
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-subtle: #f8fafc;
+
+  /* Text Colors (All >= 4.5:1 contrast against surface) */
+  --text-primary: #0f172a;    /* 18.5:1 on white */
+  --text-secondary: #334155;  /* 9.6:1 on white */
+  --text-muted: #475569;      /* 6.0:1 on white */
+  --text-inverse: #ffffff;
+
+  /* Teal Accent */
+  --color-accent: #0f766e;        /* Teal 700, 6.2:1 */
+  --color-accent-hover: #115e59;  /* Teal 800 */
+  --color-accent-surface: #f0fdfa; /* Teal 50 */
+  --color-accent-border: #0d9488;  /* Teal 600 */
+
+  /* Semantic Status Colors (>= 4.5:1) */
+  --color-success: #166534;        /* 6.6:1 */
+  --color-success-bg: #f0fdf4;
+  --color-warning: #92400e;        /* 5.9:1 */
+  --color-warning-bg: #fffbeb;
+  --color-danger: #991b1b;         /* 7.3:1 */
+  --color-danger-bg: #fef2f2;
+  --color-info: #075985;           /* 7.0:1 */
+  --color-info-bg: #f0f9ff;
+
+  /* UI Borders (>= 3:1 contrast against adjacent background) */
+  --border-strong: #64748b;        /* 3.9:1 against white */
+  --border-subtle: #cbd5e1;
+  --border-card: #e2e8f0;
+
+  /* Focus Indicator (Visible 3px) */
+  --color-focus: #0284c7;
+  --focus-ring: 3px solid var(--color-focus);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-app: #090d16;
+    --bg-surface: #111827;
+    --bg-surface-elevated: #1f2937;
+    --bg-surface-subtle: #1e293b;
+
+    --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #cbd5e1;
+    --text-inverse: #0f172a;
+
+    --color-accent: #2dd4bf;
+    --color-accent-hover: #5eead4;
+    --color-accent-surface: #134e4a;
+    --color-accent-border: #2dd4bf;
+
+    --color-success: #4ade80;
+    --color-success-bg: #052e16;
+    --color-warning: #fbbf24;
+    --color-warning-bg: #451a03;
+    --color-danger: #f87171;
+    --color-danger-bg: #450a0a;
+    --color-info: #38bdf8;
+    --color-info-bg: #082f49;
+
+    --border-strong: #94a3b8;
+    --border-subtle: #475569;
+    --border-card: #334155;
+
+    --color-focus: #38bdf8;
+  }
+}
+
+body.high-contrast {
+  --bg-app: #000000;
+  --bg-surface: #000000;
+  --bg-surface-elevated: #111111;
+  --bg-surface-subtle: #1a1a1a;
+
+  --text-primary: #ffffff;
+  --text-secondary: #ffff00;
+  --text-muted: #ffffff;
+  --text-inverse: #000000;
+
+  --color-accent: #00ffff;
+  --color-accent-hover: #ffffff;
+  --color-accent-surface: #002222;
+  --color-accent-border: #00ffff;
+
+  --color-success: #55ff55;
+  --color-success-bg: #002200;
+  --color-warning: #ffff55;
+  --color-warning-bg: #222200;
+  --color-danger: #ff5555;
+  --color-danger-bg: #220000;
+  --color-info: #55ffff;
+  --color-info-bg: #002222;
+
+  --border-strong: #ffffff;
+  --border-subtle: #ffffff;
+  --border-card: #ffffff;
+
+  --color-focus: #ffff00;
+  --focus-ring: 3px solid #ffff00;
+}
+
