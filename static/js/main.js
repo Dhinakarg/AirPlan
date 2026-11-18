@@ -1,181 +1,168 @@
 /**
- * @fileoverview Main application bootstrapper and orchestrator for AirLedger.
+ * @fileoverview Main application orchestrator and screen wiring for AirLedger.
  */
 
-import { announce, toggleHighContrast } from './a11y.js';
-import { createPlan } from './api.js';
-import { t } from './i18n.js';
-import { renderInterventions } from './render/interventions.js';
-import { renderMembers } from './render/members.js';
-import { renderSources } from './render/sources.js';
-import { renderSummaryCards } from './render/summary.js';
-import { renderTimeline } from './render/timeline.js';
+import {
+  announce,
+  isSpeechSupported,
+  setTextSize,
+  speakText,
+  stopSpeaking,
+  toggleHighContrast,
+  toggleSimpleLanguage,
+} from './a11y.js';
+import { t, updateDocumentLang } from './i18n.js';
+import { renderAssistantScreen } from './render/assistant.js';
+import { renderDetectiveScreen } from './render/detective.js';
+import { renderFamilyScreen } from './render/family.js';
+import { renderLedgerScreen } from './render/ledger.js';
+import { renderNeighbourhoodScreen } from './render/neighbourhood.js';
+import { renderResultsScreen } from './render/results.js';
 import { getState, setState, subscribe } from './state.js';
 
-/**
- * Recalculate plan based on current state parameters.
- * @returns {Promise<void>}
- */
-async function refreshPlan() {
-  const s = getState();
-  setState({ isLoading: true });
-  announce(t('loading', s.language));
+let isSpeaking = false;
 
-  try {
-    const plan = await createPlan(s.householdProfile, s.language, s.activeInterventions);
-    setState({ currentPlan: plan, isLoading: false, error: null });
-    announce('Clean air plan updated successfully.');
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Calculation error';
-    setState({ isLoading: false, error: msg });
-    announce(`Error: ${msg}`, 'assertive');
-  }
+/**
+ * Render all 6 screens into their respective section containers.
+ * @returns {void}
+ */
+export function renderAllScreens() {
+  const screens = [
+    ['screen-family', renderFamilyScreen],
+    ['screen-ledger', renderLedgerScreen],
+    ['screen-results', renderResultsScreen],
+    ['screen-detective', renderDetectiveScreen],
+    ['screen-neighbourhood', renderNeighbourhoodScreen],
+    ['screen-assistant', renderAssistantScreen],
+  ];
+  screens.forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) fn(el);
+  });
+  updateControlLabels();
 }
 
 /**
- * Handle user toggling an intervention checkbox.
- * @param {string} id - Intervention identifier.
- * @param {boolean} active - Checkbox state.
+ * Update top-level text and control labels on language change.
  * @returns {void}
  */
-function handleInterventionToggle(id, active) {
-  const current = new Set(getState().activeInterventions);
-  if (active) {
-    current.add(id);
-  } else {
-    current.delete(id);
-  }
-  setState({ activeInterventions: Array.from(current) });
-  refreshPlan();
-}
-
-/**
- * Update UI text elements based on active language dictionary.
- * @param {'en' | 'hi'} lang - Language code.
- * @returns {void}
- */
-function updateLocalization(lang) {
-  const elements = [
+function updateControlLabels() {
+  const lang = getState().language;
+  updateDocumentLang(lang);
+  const labels = [
     ['site-title-heading', 'siteTitle'],
     ['site-tagline-text', 'siteTagline'],
-    ['form-title-text', 'householdProfile'],
-    ['label-fuel', 'cookingFuel'],
-    ['label-exhaust', 'exhaustFan'],
-    ['label-incense', 'incenseCoils'],
-    ['label-sealing', 'sealingDrafts'],
-    ['label-volume', 'roomVolume'],
-    ['label-cadr', 'purifierCadr'],
-    ['calculate-btn-text', 'generatePlan'],
-    ['kpi-reduction-label', 'exposureReduction'],
-    ['kpi-indoor-label', 'indoorAvg'],
-    ['kpi-peak-label', 'smogAlert'],
-    ['sources-title-text', 'sourcesTitle'],
-    ['interventions-title-text', 'interventionsTitle'],
-    ['timeline-title-text', 'timelineTitle'],
-    ['members-title-text', 'membersTitle'],
+    ['skip-link-text', 'skipLink'],
+    ['lang-btn-text', 'language'],
     ['contrast-btn-text', 'highContrast'],
     ['plain-btn-text', 'plainLanguage'],
+    ['tab-family-text', 'navFamily'],
+    ['tab-ledger-text', 'navLedger'],
+    ['tab-results-text', 'navResults'],
+    ['tab-detective-text', 'navDetective'],
+    ['tab-neighbourhood-text', 'navNeighbourhood'],
+    ['tab-assistant-text', 'navAssistant'],
   ];
+  labels.forEach(([id, k]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(k, lang);
+  });
+  const readEl = document.getElementById('read-btn-text');
+  if (readEl) readEl.textContent = t(isSpeaking ? 'stopReadAloud' : 'readAloud', lang);
+}
 
-  elements.forEach(([id, key]) => {
-    const node = document.getElementById(id);
-    if (node) {
-      node.textContent = t(key, lang);
+/**
+ * Switch active visible screen section.
+ * @param {string} screenId - Target section container id.
+ * @returns {void}
+ */
+export function switchScreen(screenId) {
+  const ids = ['family', 'ledger', 'results', 'detective', 'neighbourhood', 'assistant'];
+  ids.forEach((name) => {
+    const sec = document.getElementById(`screen-${name}`);
+    const tab = document.getElementById(`tab-${name}`);
+    const isTarget = `screen-${name}` === screenId;
+    if (sec && tab) {
+      sec.classList.toggle('sr-only', !isTarget);
+      tab.setAttribute('aria-selected', String(isTarget));
+      tab.classList.toggle('active-tab', isTarget);
     }
   });
-
-  const langBtnText = document.getElementById('lang-btn-text');
-  if (langBtnText) {
-    langBtnText.textContent = lang === 'en' ? 'हिंदी' : 'English';
-  }
+  announce(`Switched to ${screenId.replace('screen-', '')} view`);
 }
 
 /**
- * Initialize event listeners on controls and forms.
+ * Attach event listeners to top-level header and navigation controls.
  * @returns {void}
  */
-function bindEventListeners() {
-  const form = document.getElementById('profile-form');
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const s = getState();
-      const fuel = /** @type {HTMLSelectElement} */ (document.getElementById('cooking-fuel-select')).value;
-      const hasExhaust = /** @type {HTMLInputElement} */ (document.getElementById('exhaust-fan-chk')).checked;
-      const hasIncense = /** @type {HTMLInputElement} */ (document.getElementById('incense-chk')).checked;
-      const windowsSealed = /** @type {HTMLInputElement} */ (document.getElementById('sealing-chk')).checked;
-      const volume = parseFloat(/** @type {HTMLInputElement} */ (document.getElementById('volume-input')).value) || 60;
-      const cadr = parseFloat(/** @type {HTMLInputElement} */ (document.getElementById('purifier-cadr-input')).value) || 0;
+function bindHeaderControls() {
+  // Language & visual toggles
+  document.getElementById('lang-toggle-btn')?.addEventListener('click', () => {
+    const next = getState().language === 'en' ? 'hi' : 'en';
+    setState({ language: next });
+    announce(`Language: ${next === 'en' ? 'English' : 'Hindi'}`);
+  });
 
-      const updatedProfile = {
-        ...s.householdProfile,
-        cooking_fuel: fuel,
-        has_exhaust_fan: hasExhaust,
-        has_incense_or_coils: hasIncense,
-        windows_sealed: windowsSealed,
-        room_volume_m3: volume,
-        purifier_cadr_m3h: cadr,
-      };
-      setState({ householdProfile: updatedProfile });
-      refreshPlan();
-    });
+  document.getElementById('contrast-toggle-btn')?.addEventListener('click', (e) => {
+    const isHc = toggleHighContrast();
+    e.currentTarget.setAttribute('aria-pressed', String(isHc));
+    setState({ highContrast: isHc });
+  });
+
+  document.getElementById('plain-toggle-btn')?.addEventListener('click', (e) => {
+    const isPlain = toggleSimpleLanguage();
+    e.currentTarget.setAttribute('aria-pressed', String(isPlain));
+    setState({ simpleLanguage: isPlain });
+  });
+
+  document.getElementById('text-size-select')?.addEventListener('change', (e) => {
+    setTextSize(/** @type {any} */ (e.target.value));
+    setState({ textSize: e.target.value });
+  });
+
+  // Read aloud button
+  const readBtn = document.getElementById('read-aloud-btn');
+  if (readBtn) {
+    if (!isSpeechSupported()) {
+      readBtn.style.display = 'none';
+    } else {
+      readBtn.addEventListener('click', () => {
+        if (isSpeaking) {
+          stopSpeaking();
+          isSpeaking = false;
+        } else {
+          const sec = document.querySelector('section.layout-screen:not(.sr-only)');
+          speakText(sec ? (sec.textContent || '').substring(0, 500) : 'AirLedger', getState().language);
+          isSpeaking = true;
+        }
+        updateControlLabels();
+      });
+    }
   }
 
-  const langBtn = document.getElementById('lang-toggle-btn');
-  if (langBtn) {
-    langBtn.addEventListener('click', () => {
-      const nextLang = getState().language === 'en' ? 'hi' : 'en';
-      setState({ language: nextLang });
-      updateLocalization(nextLang);
-      refreshPlan();
+  // Navigation Tabs
+  ['family', 'ledger', 'results', 'detective', 'neighbourhood', 'assistant'].forEach((name) => {
+    document.getElementById(`tab-${name}`)?.addEventListener('click', () => {
+      switchScreen(`screen-${name}`);
     });
-  }
-
-  const contrastBtn = document.getElementById('contrast-toggle-btn');
-  if (contrastBtn) {
-    contrastBtn.addEventListener('click', () => {
-      const isHigh = toggleHighContrast();
-      contrastBtn.setAttribute('aria-pressed', String(isHigh));
-    });
-  }
-
-  const plainBtn = document.getElementById('plain-toggle-btn');
-  if (plainBtn) {
-    plainBtn.addEventListener('click', () => {
-      const next = !getState().plainLanguage;
-      setState({ plainLanguage: next });
-      plainBtn.setAttribute('aria-pressed', String(next));
-      renderSummaryCards(getState().currentPlan, next);
-    });
-  }
+  });
 }
 
 /**
- * Global subscriber rerendering UI components on state change.
- * @param {import('./state.js').AppState} s - Current state.
+ * Initialize AirLedger Single Page Application.
  * @returns {void}
  */
-function onStateChange(s) {
-  if (!s.currentPlan) return;
-
-  renderSummaryCards(s.currentPlan, s.plainLanguage);
-
-  const sourcesBox = document.getElementById('sources-list-container');
-  if (sourcesBox) renderSources(sourcesBox, s.currentPlan.identified_sources);
-
-  const itBox = document.getElementById('interventions-list-container');
-  if (itBox) renderInterventions(itBox, s.currentPlan.ranked_interventions, handleInterventionToggle);
-
-  const chartBox = document.getElementById('chart-container');
-  const tableBody = document.getElementById('hourly-table-body');
-  if (chartBox && tableBody) renderTimeline(chartBox, tableBody, s.currentPlan);
-
-  const membersBox = document.getElementById('members-container');
-  if (membersBox) renderMembers(membersBox, s.currentPlan.member_plans);
+export function initApp() {
+  bindHeaderControls();
+  subscribe(() => renderAllScreens());
+  renderAllScreens();
+  announce('AirLedger ready.');
 }
 
-// Subscribe to reactive state updates and start application
-subscribe(onStateChange);
-bindEventListeners();
-refreshPlan();
-
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
+}

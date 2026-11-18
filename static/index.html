@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AirLedger — Household Clean-Air Planner</title>
-  <meta name="description" content="GenAI-assisted household clean-air planner for winter smog. Hour-by-hour exposure plans, indoor source identification, and ranked low-cost interventions.">
+  <meta name="description" content="GenAI-assisted household clean-air planner for severe winter smog. Hour-by-hour exposure plans, indoor source identification, and ranked low-cost interventions.">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#main-content" class="skip-link" id="skip-link-text">Skip to main content</a>
 
   <div class="app-container">
     <header role="banner">
@@ -17,7 +17,7 @@
         <p class="site-tagline" id="site-tagline-text">Household Clean-Air Exposure &amp; Intervention Planner</p>
       </div>
 
-      <nav aria-label="Quick Settings" class="controls-bar">
+      <div class="controls-bar">
         <button type="button" class="btn" id="lang-toggle-btn" aria-label="Switch language">
           <span aria-hidden="true">🌐</span> <span id="lang-btn-text">हिंदी</span>
         </button>
@@ -27,147 +27,87 @@
         <button type="button" class="btn" id="plain-toggle-btn" aria-label="Toggle plain language mode" aria-pressed="false">
           <span aria-hidden="true">📖</span> <span id="plain-btn-text">Plain Language</span>
         </button>
-      </nav>
+        <div class="text-size-control">
+          <label for="text-size-select" class="sr-only">Text Size</label>
+          <select id="text-size-select" aria-label="Adjust font text size">
+            <option value="normal">Size: 100%</option>
+            <option value="large">Size: 115%</option>
+            <option value="larger">Size: 130%</option>
+          </select>
+        </div>
+        <button type="button" class="btn" id="read-aloud-btn" aria-label="Read screen contents aloud">
+          <span aria-hidden="true">🔊</span> <span id="read-btn-text">Read Aloud</span>
+        </button>
+      </div>
     </header>
 
-    <div id="status-announcer" class="sr-only" aria-live="polite" role="status"></div>
-
-    <main id="main-content" role="main" class="layout-grid">
-      <!-- Left Column: Household Configuration Form -->
-      <section aria-labelledby="form-heading" class="card">
-        <h2 id="form-heading" class="card-title">
-          <span aria-hidden="true">🏠</span> <span id="form-title-text">Household Profile</span>
-        </h2>
-
-        <form id="profile-form" novalidate>
-          <div class="form-group">
-            <label for="cooking-fuel-select" id="label-fuel">Primary Cooking Fuel</label>
-            <select id="cooking-fuel-select" name="cooking_fuel">
-              <option value="lpg">LPG / Piped Gas</option>
-              <option value="biomass">Biomass / Chulha (Wood/Dung)</option>
-              <option value="kerosene">Kerosene Stove</option>
-              <option value="electric">Electric Induction / Cooktop</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="checkbox-label" for="exhaust-fan-chk">
-              <input type="checkbox" id="exhaust-fan-chk" name="has_exhaust_fan">
-              <span id="label-exhaust">Exhaust fan installed in kitchen</span>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="checkbox-label" for="incense-chk">
-              <input type="checkbox" id="incense-chk" name="has_incense_or_coils" checked>
-              <span id="label-incense">Regular incense (agarbatti) or mosquito coils</span>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="checkbox-label" for="sealing-chk">
-              <input type="checkbox" id="sealing-chk" name="windows_sealed">
-              <span id="label-sealing">Weatherstripped windows and draft seals</span>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label for="volume-input" id="label-volume">Room Air Volume (m³)</label>
-            <input type="number" id="volume-input" name="room_volume_m3" value="60" min="10" max="1000" step="5">
-          </div>
-
-          <div class="form-group">
-            <label for="purifier-cadr-input" id="label-cadr">Existing Purifier CADR (m³/h)</label>
-            <input type="number" id="purifier-cadr-input" name="purifier_cadr_m3h" value="0" min="0" max="2000" step="10">
-          </div>
-
-          <button type="submit" class="btn btn-primary" id="calculate-plan-btn" style="width: 100%;">
-            <span id="calculate-btn-text">Generate Clean-Air Plan</span>
+    <nav role="navigation" aria-label="Main Screen Navigation" class="tab-nav">
+      <ul class="tab-list" role="tablist">
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-family" class="tab-btn active-tab" aria-selected="true" aria-controls="screen-family">
+            <span aria-hidden="true">🏠</span> <span id="tab-family-text">Family &amp; Home</span>
           </button>
-        </form>
+        </li>
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-ledger" class="tab-btn" aria-selected="false" aria-controls="screen-ledger">
+            <span aria-hidden="true">⏱️</span> <span id="tab-ledger-text">Day Ledger</span>
+          </button>
+        </li>
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-results" class="tab-btn" aria-selected="false" aria-controls="screen-results">
+            <span aria-hidden="true">📊</span> <span id="tab-results-text">Clean-Air Plan</span>
+          </button>
+        </li>
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-detective" class="tab-btn" aria-selected="false" aria-controls="screen-detective">
+            <span aria-hidden="true">🔍</span> <span id="tab-detective-text">Home Detective</span>
+          </button>
+        </li>
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-neighbourhood" class="tab-btn" aria-selected="false" aria-controls="screen-neighbourhood">
+            <span aria-hidden="true">🤝</span> <span id="tab-neighbourhood-text">Neighbourhood</span>
+          </button>
+        </li>
+        <li role="presentation">
+          <button type="button" role="tab" id="tab-assistant" class="tab-btn" aria-selected="false" aria-controls="screen-assistant">
+            <span aria-hidden="true">💬</span> <span id="tab-assistant-text">Ask AirLedger</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div id="status-announcer" class="sr-only" aria-live="polite" role="status"></div>
+    <div id="error-alert" role="alert" tabindex="-1" class="error-banner sr-only"></div>
+
+    <main id="main-content" role="main" class="main-sections">
+      <!-- Screen 1: Family & Home Setup -->
+      <section id="screen-family" class="layout-screen" aria-labelledby="heading-family">
+        <h2 id="heading-family" class="sr-only">Family and Home Setup</h2>
       </section>
 
-      <!-- Right Column: Interactive Results & Exposure Ledger -->
-      <section aria-labelledby="results-heading" id="results-container">
-        <h2 id="results-heading" class="sr-only">Clean-Air Plan Results</h2>
+      <!-- Screen 2: Day Routine Ledger -->
+      <section id="screen-ledger" class="layout-screen sr-only" aria-labelledby="heading-ledger">
+        <h2 id="heading-ledger" class="sr-only">Daily Routine Ledger</h2>
+      </section>
 
-        <!-- Plain Language / AI Summary Banner -->
-        <section aria-label="Plan Summary" class="summary-banner" id="summary-banner-box">
-          <p id="summary-text">Ready to generate clean air plan for severe smog protection.</p>
-        </section>
+      <!-- Screen 3: Results & Exposure Ledger -->
+      <section id="screen-results" class="layout-screen sr-only" aria-labelledby="heading-results">
+        <h2 id="heading-results" class="sr-only">Clean-Air Plan Results</h2>
+      </section>
 
-        <!-- Key Impact KPI Cards -->
-        <section aria-label="Key Impact Metrics" class="kpi-row" id="kpi-row-box">
-          <div class="kpi-card">
-            <div class="kpi-val" id="kpi-reduction">--</div>
-            <div class="kpi-label" id="kpi-reduction-label">Exposure Reduction</div>
-            <span class="provenance-tag" id="kpi-reduction-prov">Dynamic model</span>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="kpi-indoor-avg">--</div>
-            <div class="kpi-label" id="kpi-indoor-label">Average Indoor PM2.5 (µg/m³)</div>
-            <span class="provenance-tag">Mass balance</span>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-val" id="kpi-peak-status">--</div>
-            <div class="kpi-label" id="kpi-peak-label">Smog Alert Status</div>
-            <span class="provenance-tag">WHO 24h standard</span>
-          </div>
-        </section>
+      <!-- Screen 4: Home Pollution Detective -->
+      <section id="screen-detective" class="layout-screen sr-only" aria-labelledby="heading-detective">
+        <h2 id="heading-detective" class="sr-only">Home Pollution Detective</h2>
+      </section>
 
-        <!-- Indoor Pollution Sources Section -->
-        <section aria-labelledby="sources-heading" class="card" id="sources-card">
-          <h3 id="sources-heading" class="card-title">
-            <span aria-hidden="true">⚠️</span> <span id="sources-title-text">Identified Indoor Pollution Sources</span>
-          </h3>
-          <div id="sources-list-container" role="list"></div>
-        </section>
+      <!-- Screen 5: Neighbourhood Collective Action -->
+      <section id="screen-neighbourhood" class="layout-screen sr-only" aria-labelledby="heading-neighbourhood">
+        <h2 id="heading-neighbourhood" class="sr-only">Neighbourhood Action</h2>
+      </section>
 
-        <!-- Ranked Interventions Section -->
-        <section aria-labelledby="interventions-heading" class="card" id="interventions-card">
-          <h3 id="interventions-heading" class="card-title">
-            <span aria-hidden="true">🛡️</span> <span id="interventions-title-text">Ranked Low-Cost Interventions</span>
-          </h3>
-          <p id="interventions-subtitle" class="site-tagline" style="margin-bottom: 16px;">
-            Toggle options to see direct impact on daily indoor and personal smog exposure:
-          </p>
-          <div id="interventions-list-container"></div>
-        </section>
-
-        <!-- Hour-by-Hour Exposure Plan (Chart + Accessible Table) -->
-        <section aria-labelledby="timeline-heading" class="card" id="timeline-card">
-          <h3 id="timeline-heading" class="card-title">
-            <span aria-hidden="true">📊</span> <span id="timeline-title-text">24-Hour Smog Exposure Ledger</span>
-          </h3>
-          <p class="site-tagline" id="timeline-chart-desc">
-            Hourly comparison of outdoor ambient smog, unmitigated baseline, and mitigated exposure.
-          </p>
-
-          <div id="chart-container" role="region" aria-label="Hourly Exposure Chart"></div>
-
-          <div class="table-container" role="region" aria-label="Hourly Exposure Data Table" tabindex="0">
-            <table id="hourly-exposure-table">
-              <caption>Hour-by-hour exposure concentrations and hourly protective actions</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Hour</th>
-                  <th scope="col">Ambient (µg/m³)</th>
-                  <th scope="col">Indoor (µg/m³)</th>
-                  <th scope="col">Action Required</th>
-                </tr>
-              </thead>
-              <tbody id="hourly-table-body"></tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Family Members Personalized Breakdown -->
-        <section aria-labelledby="members-heading" class="card" id="members-card">
-          <h3 id="members-heading" class="card-title">
-            <span aria-hidden="true">👨‍👩‍👧‍👦</span> <span id="members-title-text">Family Member Personal Plans</span>
-          </h3>
-          <div id="members-container"></div>
-        </section>
+      <!-- Screen 6: Ask AirLedger Assistant -->
+      <section id="screen-assistant" class="layout-screen sr-only" aria-labelledby="heading-assistant">
+        <h2 id="heading-assistant" class="sr-only">Ask AirLedger Assistant</h2>
       </section>
     </main>
 
@@ -184,4 +124,3 @@
   <script type="module" src="/static/js/main.js"></script>
 </body>
 </html>
-

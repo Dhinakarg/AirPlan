@@ -3,7 +3,7 @@
  */
 
 /**
- * Perform typed JSON fetch with correlation tracking and error handling.
+ * Perform typed JSON fetch with correlation tracking and domain error extraction.
  * @param {string} url - Target URL.
  * @param {RequestInit} [options={}] - Standard fetch options.
  * @returns {Promise<any>} Parsed response data.
@@ -31,57 +31,81 @@ async function request(url, options = {}) {
 }
 
 /**
- * Fetch operational service health status.
- * @returns {Promise<{status: string, app: string}>}
+ * Operational service healthcheck.
+ * @returns {Promise<{status: string}>}
  */
 export async function fetchHealth() {
-  return request('/api/health');
-}
-
-/**
- * Fetch outdoor 24-hour smog forecast curve.
- * @returns {Promise<{hourly_pm25: number[]}>}
- */
-export async function fetchForecast() {
-  return request('/api/forecast');
-}
-
-/**
- * Fetch catalog of available low-cost interventions.
- * @returns {Promise<Array<any>>}
- */
-export async function fetchInterventions() {
-  return request('/api/interventions');
+  return request('/api/v1/health');
 }
 
 /**
  * Submit household configuration and generate customized 24-hour plan.
- * @param {Object} profile - Household profile object.
- * @param {'en' | 'hi'} [language='en'] - Output language.
- * @param {string[]} [activeInterventions=[]] - Enabled intervention IDs.
- * @returns {Promise<Object>} CleanAirPlan domain object.
+ * @param {Record<string, any>} payload - PlanRequest payload.
+ * @returns {Promise<Record<string, any>>} PlanResponse domain object.
  */
-export async function createPlan(profile, language = 'en', activeInterventions = []) {
-  return request('/api/plan', {
+export async function createPlan(payload) {
+  return request('/api/v1/plan', {
     method: 'POST',
-    body: JSON.stringify({
-      profile,
-      language,
-      active_interventions: activeInterventions,
-    }),
+    body: JSON.stringify(payload),
   });
 }
 
 /**
- * Request plain-language AI explanation for an existing plan.
- * @param {Object} plan - CleanAirPlan domain object.
- * @param {'en' | 'hi'} [language='en'] - Target language.
- * @returns {Promise<{explanation: string}>}
+ * Simulate counterfactual daily routine adjustments.
+ * @param {Record<string, any>} payload - SimulateRequest payload.
+ * @returns {Promise<Record<string, any>>} RoutineComparison object.
  */
-export async function explainPlan(plan, language = 'en') {
-  return request('/api/explain', {
+export async function simulateRoutine(payload) {
+  return request('/api/v1/simulate', {
     method: 'POST',
-    body: JSON.stringify({ plan, language }),
+    body: JSON.stringify(payload),
   });
 }
 
+/**
+ * Diagnose domestic pollution emission sources from survey.
+ * @param {Record<string, any>} payload - HomeAnalyzeRequest questionnaire.
+ * @returns {Promise<{findings: Array<any>}>} HomeAnalyzeResponse.
+ */
+export async function analyzeHome(payload) {
+  return request('/api/v1/home/analyze', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Submit privacy-preserving community clean-air action pledge.
+ * @param {{area_code: string, action: string, count: number}} payload - PledgeRequest.
+ * @returns {Promise<{status: string, message: string, area_code: string}>}
+ */
+export async function submitPledge(payload) {
+  return request('/api/v1/community/pledges', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Retrieve aggregated community metrics and emissions savings.
+ * @param {string} [areaCode] - Optional coarse geographic code.
+ * @returns {Promise<Record<string, any>>} CommunityImpact metrics.
+ */
+export async function fetchCommunitySummary(areaCode) {
+  const query = areaCode ? `?area_code=${encodeURIComponent(areaCode)}` : '';
+  return request(`/api/v1/community/summary${query}`);
+}
+
+/**
+ * Inquire with guarded clean-air assistant.
+ * @param {string} question - User question text.
+ * @param {Record<string, any>} [facts={}] - Ground truth calculation facts.
+ * @param {'en' | 'hi'} [language='en'] - Preferred language.
+ * @returns {Promise<Record<string, any>>} AskResponse.
+ */
+export async function askAssistant(question, facts = {}, language = 'en') {
+  return request('/api/v1/ask', {
+    method: 'POST',
+    body: JSON.stringify({ question, facts, language }),
+  });
+}
