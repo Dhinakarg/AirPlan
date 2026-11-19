@@ -57,3 +57,4 @@ test('dom helper: el appends nested children and array of children', () => {
   assert.equal(container.children[1].textContent, ' - ');
   assert.equal(container.children[2].textContent, '150');
 });
+

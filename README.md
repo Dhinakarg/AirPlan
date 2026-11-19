@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/Dhinakarg/AirPlan/actions/workflows/ci.yml/badge.svg)](https://github.com/Dhinakarg/AirPlan/actions)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
-![Coverage](https://img.shields.io/badge/Coverage-96.70%25-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-96.71%25-brightgreen)
 ![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA-green)
 ![Frontend](https://img.shields.io/badge/Frontend-Vanilla%20ES%20Modules-yellow)
 ![License](https://img.shields.io/badge/License-MIT-teal)
@@ -85,7 +85,7 @@ make check
 
 | Quality Gate | Tool | Status & Evidence |
 | :--- | :--- | :--- |
-| **Python Unit & Integration** | `pytest` | **189 passed** in ~4s with **96.70% coverage** (exceeds 92% target) |
+| **Python Unit & Integration** | `pytest` | **189 passed** in ~4s with **96.71% coverage** (exceeds 92% target) |
 | **Frontend Tests** | `node --test` | **27 passed**, 0 failed (DOM builder, pure helpers, i18n parity, state store, enum leaks) |
 | **Static Type Checking** | `mypy --strict` | **Clean** across all 35 source files (0 errors) |
 | **Linter & Formatting** | `ruff` | **All checks passed** |
