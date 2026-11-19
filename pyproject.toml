@@ -49,8 +49,6 @@ select = [
     "RUF", # Ruff-specific rules
 ]
 ignore = [
-    # ANN401: Dynamically typed expressions (typing.Any) are needed for Starlette/FastAPI middleware call_next handlers
-    "ANN401",
     # D105: Missing docstring in magic methods (e.g., __str__, __repr__) which are self-explanatory
     "D105",
     # D107: Missing docstring in __init__ because class-level docstring documents parameters

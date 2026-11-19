@@ -1,14 +1,13 @@
 """FastAPI application entrypoint for AirPlan."""
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -69,12 +68,12 @@ async def domain_error_handler(request: Request, exc: AirPlanError) -> JSONRespo
     )
 
 
-def _extract_field_path(loc: Sequence[Any]) -> str:
+def _extract_field_path(loc: Sequence[object]) -> str:
     """Format property hierarchy excluding root payload wrapper."""
     return " -> ".join(str(item) for item in loc if item != "body")
 
 
-def _format_validation_msg(errors: Sequence[Any]) -> str:
+def _format_validation_msg(errors: Sequence[Mapping[str, object] | object]) -> str:
     """Format the first validation error message without leaking internal trace details."""
     if not errors or not isinstance(errors[0], dict):
         return "Invalid request payload or parameters."
@@ -148,8 +147,8 @@ def healthcheck() -> dict[str, str]:
     return {"status": "ok", "app": settings.app_name}
 
 
-@app.get("/")
-def root(request: Request) -> Any:
+@app.get("/", response_model=None)
+def root(request: Request) -> Response | dict[str, str]:
     """Root endpoint providing service status information or web UI.
 
     Args:
