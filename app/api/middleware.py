@@ -60,9 +60,18 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         return None
 
     @staticmethod
-    def _check_rate_limit(request: Request, corr_id: str) -> Response | None:
+    def _resolve_client_ip(request: Request) -> str:
+        """Resolve client IP strictly adhering to TRUSTED_PROXY configuration."""
+        if get_settings().trusted_proxy:
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded:
+                return forwarded.split(",")[0].strip()
+        return request.client.host if request.client else "127.0.0.1"
+
+    @classmethod
+    def _check_rate_limit(cls, request: Request, corr_id: str) -> Response | None:
         """Enforce per-IP sliding-window request throttling."""
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = cls._resolve_client_ip(request)
         now = time.monotonic()
         limit = get_settings().rate_limit_per_minute
 
@@ -84,14 +93,18 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         return None
 
     @staticmethod
-    def _attach_security_headers(response: Response, corr_id: str) -> None:
-        """Apply strict security headers to all outgoing responses."""
+    def _attach_security_headers(request: Request, response: Response, corr_id: str) -> None:
+        """Apply strict security and privacy headers to all outgoing responses."""
         response.headers["X-Correlation-ID"] = corr_id
         response.headers["Content-Security-Policy"] = CSP_HEADER_VALUE
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+        if request.url.path.startswith("/api"):
+            response.headers["Cache-Control"] = "no-store"
 
     async def dispatch(
         self,
@@ -104,12 +117,14 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         size_error = self._check_payload_size(request, corr_id)
         if size_error is not None:
+            self._attach_security_headers(request, size_error, corr_id)
             return size_error
 
         rate_error = self._check_rate_limit(request, corr_id)
         if rate_error is not None:
+            self._attach_security_headers(request, rate_error, corr_id)
             return rate_error
 
         response = await call_next(request)
-        self._attach_security_headers(response, corr_id)
+        self._attach_security_headers(request, response, corr_id)
         return response

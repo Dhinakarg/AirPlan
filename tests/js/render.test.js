@@ -1,23 +1,43 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getAqiCategory, formatConcentration } from '../../static/js/i18n.js';
+import { getAqiCategory, formatConcentration, labelFor } from '../../static/js/i18n.js';
 import { PRESET_CITIES, DEFAULT_ROUTINE } from '../../static/js/state.js';
 
 test('render helpers: formatConcentration formats valid float strings', () => {
   assert.equal(formatConcentration(45.2), '45.2 µg/m³');
   assert.equal(formatConcentration(300), '300.0 µg/m³');
+  assert.equal(formatConcentration(0), '0.0 µg/m³');
+  assert.equal(formatConcentration(12.3456), '12.3 µg/m³');
 });
 
-test('render helpers: getAqiCategory covers all standard particulate ranges', () => {
-  const levels = [15, 45, 90, 180, 400];
-  const results = levels.map((l) => getAqiCategory(l));
-  assert.equal(results.length, 5);
-  results.forEach((r) => {
-    assert.ok(r.label.length > 0);
-    assert.ok(r.icon.length > 0);
-    assert.ok(r.pattern.startsWith('['));
-    assert.ok(r.pattern.endsWith(']'));
+test('render helpers: getAqiCategory covers all standard particulate ranges and thresholds', () => {
+  const boundaryTests = [
+    { pm25: 15, icon: '🟢', pattern: '[Solid Dot]' },
+    { pm25: 45, icon: '🟡', pattern: '[Diagonal Slash]' },
+    { pm25: 80, icon: '🟠', pattern: '[Horizontal Stripe]' },
+    { pm25: 180, icon: '🔴', pattern: '[Crosshatch]' },
+    { pm25: 350, icon: '🟣', pattern: '[Stippled Grid]' },
+  ];
+
+  boundaryTests.forEach(({ pm25, icon, pattern }) => {
+    const res = getAqiCategory(pm25);
+    assert.equal(res.icon, icon);
+    assert.equal(res.pattern, pattern);
+    assert.ok(res.label.length > 0);
   });
+});
+
+test('render helpers: labelFor maps all domain enums cleanly in en and hi', () => {
+  assert.equal(labelFor('ageGroup', 'child', 'en'), 'Child');
+  assert.equal(labelFor('ageGroup', 'toddler', 'hi'), 'टॉडलर');
+  assert.equal(labelFor('sensitivity', 'asthma_or_heart', 'en'), 'Asthma or heart condition');
+  assert.equal(labelFor('cookingFuel', 'wood', 'en'), 'Firewood');
+  assert.equal(labelFor('kitchenExhaust', 'vented', 'en'), 'Vented chimney to outside');
+  assert.equal(labelFor('sweeping', 'wet', 'en'), 'Wet mopping');
+  assert.equal(labelFor('mode', 'metro', 'en'), 'Metro train');
+  assert.equal(labelFor('activity', 'sleep', 'en'), 'Sleeping');
+  // Unknown group or key fallback
+  assert.equal(labelFor('unknown_group', 'custom_key', 'en'), 'custom_key');
 });
 
 test('render helpers: PRESET_CITIES contains valid latitudes and longitudes', () => {

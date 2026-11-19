@@ -218,3 +218,16 @@ def test_hypothesis_dose_monotonic_in_pm25(
     dose_low = inhaled_dose_ug(pm25_low, m_factor, b_rate)
     dose_high = inhaled_dose_ug(pm25_high, m_factor, b_rate)
     assert dose_high >= dose_low
+
+
+@given(
+    total_dose=st.floats(min_value=0.0, max_value=50000.0),
+    reference_dose=st.floats(min_value=0.0, max_value=50000.0),
+)
+def test_hypothesis_exposure_index_never_negative(
+    total_dose: float,
+    reference_dose: float,
+) -> None:
+    """Property: Computed relative exposure index is always non-negative."""
+    index = compute_relative_index(total_dose, reference_dose)
+    assert index >= 0.0

@@ -1,5 +1,6 @@
 """Accessibility compliance test suite verifying WCAG AA, landmarks, labels, and scripts."""
 
+import re
 from html.parser import HTMLParser
 from http import HTTPStatus
 from pathlib import Path
@@ -29,38 +30,51 @@ class DocumentParser(HTMLParser):
         self.table_has_caption: bool = False
         self.table_th_scopes: list[str] = []
         self.screen_sections: list[dict[str, str | None]] = []
+        self.all_ids: list[str] = []
+        self.heading_levels: list[int] = []
+        self.aria_live_regions: list[dict[str, str | None]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        """Process element start tags and record attributes for accessibility audits.
-
-        Args:
-            tag: HTML tag name.
-            attrs: List of attribute name-value tuples.
-        """
+        """Process element start tags and record attributes for accessibility audits."""
         attr_dict = dict(attrs)
         self.current_tag = tag
-
-        if tag == "html":
-            self.html_attrs = attr_dict
-        elif tag == "main":
-            self.main_attrs = attr_dict
-            self.landmarks.add("main")
-        elif tag == "h1":
-            self.h1_count += 1
-        elif tag in ("header", "nav", "footer"):
-            self.landmarks.add(tag)
-
-        role = attr_dict.get("role")
-        if role in ("banner", "navigation", "main", "contentinfo"):
-            self.landmarks.add(role)
-
-        if tag == "section" and (attr_dict.get("id") or "").startswith("screen-"):
-            self.screen_sections.append(attr_dict)
-
+        self._record_element_id_and_live(tag, attr_dict)
+        self._record_headings(tag)
+        self._record_landmarks(tag, attr_dict)
         self._check_first_link(tag, attr_dict)
         self._check_form_controls(tag, attr_dict)
         self._check_scripts_and_events(tag, attr_dict)
         self._check_table_elements(tag, attr_dict)
+
+    def _record_element_id_and_live(self, tag: str, attrs: dict[str, str | None]) -> None:
+        """Track ID uniqueness and live announcing regions."""
+        if attrs.get("id"):
+            self.all_ids.append(str(attrs["id"]))
+        if "aria-live" in attrs or attrs.get("role") in ("status", "alert"):
+            self.aria_live_regions.append(attrs)
+
+    def _record_headings(self, tag: str) -> None:
+        """Track sequential heading level occurrences."""
+        if tag in ("h1", "h2", "h3", "h4", "h5", "h6"):
+            self.heading_levels.append(int(tag[1]))
+            if tag == "h1":
+                self.h1_count += 1
+
+    def _record_landmarks(self, tag: str, attrs: dict[str, str | None]) -> None:
+        """Record landmark structures and screen sections."""
+        if tag == "html":
+            self.html_attrs = attrs
+        elif tag == "main":
+            self.main_attrs = attrs
+            self.landmarks.add("main")
+        elif tag in ("header", "nav", "footer"):
+            self.landmarks.add(tag)
+
+        role = attrs.get("role")
+        if role in ("banner", "navigation", "main", "contentinfo"):
+            self.landmarks.add(role)
+        if tag == "section" and (attrs.get("id") or "").startswith("screen-"):
+            self.screen_sections.append(attrs)
 
     def _check_first_link(self, tag: str, attrs: dict[str, str | None]) -> None:
         """Inspect skip link presence as first link."""
@@ -250,3 +264,146 @@ def test_step_layout_exists_in_served_html(client: TestClient) -> None:
     """Verify that .step-layout container exists in served index.html."""
     html = _get_served_html(client)
     assert "step-layout" in html
+
+
+def _srgb_to_linear(val: float) -> float:
+    """Convert normalized sRGB channel to linear light value."""
+    return val / 12.92 if val <= 0.04045 else ((val + 0.055) / 1.055) ** 2.4
+
+
+def _relative_luminance(hex_code: str) -> float:
+    """Calculate WCAG 2.1 relative luminance for a 6-digit hex color string."""
+    clean = hex_code.lstrip("#")
+    r = _srgb_to_linear(int(clean[0:2], 16) / 255.0)
+    g = _srgb_to_linear(int(clean[2:4], 16) / 255.0)
+    b = _srgb_to_linear(int(clean[4:6], 16) / 255.0)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast_ratio(hex1: str, hex2: str) -> float:
+    """Compute relative contrast ratio between two hex colors."""
+    l1 = _relative_luminance(hex1)
+    l2 = _relative_luminance(hex2)
+    return (max(l1, l2) + 0.05) / (min(l1, l2) + 0.05)
+
+
+def test_wcag_contrast_ratios_light_mode() -> None:
+    """Verify all light mode text pairs are >= 4.5:1 and UI borders >= 3:1."""
+    bg_surface = "#ffffff"
+    text_tokens = [
+        ("#0f172a", "text-primary"),
+        ("#334155", "text-secondary"),
+        ("#475569", "text-muted"),
+        ("#0f766e", "color-accent"),
+        ("#166534", "color-success"),
+        ("#92400e", "color-warning"),
+        ("#991b1b", "color-danger"),
+        ("#075985", "color-info"),
+    ]
+    for hex_val, name in text_tokens:
+        ratio = _contrast_ratio(hex_val, bg_surface)
+        assert ratio >= 4.5, f"Light mode token {name} ({hex_val}) contrast {ratio:.2f} < 4.5:1"
+
+    ui_tokens = [
+        ("#64748b", "border-strong"),
+        ("#0284c7", "color-focus"),
+    ]
+    for hex_val, name in ui_tokens:
+        ratio = _contrast_ratio(hex_val, bg_surface)
+        assert ratio >= 3.0, f"Light mode UI token {name} ({hex_val}) contrast {ratio:.2f} < 3:1"
+
+
+def test_wcag_contrast_ratios_dark_mode() -> None:
+    """Verify all dark mode text pairs are >= 4.5:1 and UI borders >= 3:1."""
+    bg_surface = "#111827"
+    text_tokens = [
+        ("#f8fafc", "text-primary"),
+        ("#e2e8f0", "text-secondary"),
+        ("#cbd5e1", "text-muted"),
+        ("#2dd4bf", "color-accent"),
+        ("#4ade80", "color-success"),
+        ("#fbbf24", "color-warning"),
+        ("#f87171", "color-danger"),
+        ("#38bdf8", "color-info"),
+    ]
+    for hex_val, name in text_tokens:
+        ratio = _contrast_ratio(hex_val, bg_surface)
+        assert ratio >= 4.5, f"Dark mode token {name} ({hex_val}) contrast {ratio:.2f} < 4.5:1"
+
+    ui_tokens = [
+        ("#94a3b8", "border-strong"),
+        ("#38bdf8", "color-focus"),
+    ]
+    for hex_val, name in ui_tokens:
+        ratio = _contrast_ratio(hex_val, bg_surface)
+        assert ratio >= 3.0, f"Dark mode UI token {name} ({hex_val}) contrast {ratio:.2f} < 3:1"
+
+
+def test_wcag_contrast_ratios_high_contrast_mode() -> None:
+    """Verify high contrast mode achieves enhanced contrast >= 7:1 for text."""
+    bg = "#000000"
+    for hex_val in ("#ffffff", "#ffff00", "#00ffff", "#55ff55"):
+        ratio = _contrast_ratio(hex_val, bg)
+        assert ratio >= 7.0, f"High contrast token {hex_val} contrast {ratio:.2f} < 7:1"
+
+
+def test_css_font_sizes_never_below_14px() -> None:
+    """CSS parser verifies no typography rule falls below 14px (0.875rem)."""
+    css_dir = Path(__file__).resolve().parent.parent.parent / "static" / "css"
+    for css_file in css_dir.glob("*.css"):
+        content = css_file.read_text(encoding="utf-8")
+        px_matches = re.findall(r"font-size:\s*(\d+)px", content)
+        for px in px_matches:
+            assert int(px) >= 14, f"Font size {px}px in {css_file.name} is below 14px limit"
+
+        rem_matches = re.findall(r"font-size:\s*([0-9.]+)rem", content)
+        for rem in rem_matches:
+            assert float(rem) >= 0.875, (
+                f"Font size {rem}rem in {css_file.name} is below 0.875rem (14px)"
+            )
+
+
+def test_css_interactive_targets_at_least_44px() -> None:
+    """CSS parser verifies interactive components declare at least 44px touch targets."""
+    tokens_css = Path(__file__).resolve().parent.parent.parent / "static" / "css" / "tokens.css"
+    content = tokens_css.read_text(encoding="utf-8")
+    match = re.search(r"--target-min:\s*(\d+)px", content)
+    assert match is not None
+    assert int(match.group(1)) >= 44
+
+
+def test_unique_element_ids_across_served_html(client: TestClient) -> None:
+    """Verify all element IDs in served HTML document are strictly unique."""
+    parser = DocumentParser()
+    parser.feed(_get_served_html(client))
+    total_ids = len(parser.all_ids)
+    unique_ids = len(set(parser.all_ids))
+    assert total_ids > 0
+    assert total_ids == unique_ids, (
+        f"Found duplicate IDs: {[x for x in parser.all_ids if parser.all_ids.count(x) > 1]}"
+    )
+
+
+def test_aria_live_regions_present_on_served_html(client: TestClient) -> None:
+    """Verify essential live announcing regions are configured with polite or alert modes."""
+    parser = DocumentParser()
+    parser.feed(_get_served_html(client))
+    live_ids = [r.get("id") for r in parser.aria_live_regions if r.get("id")]
+    assert "status-announcer" in live_ids
+    assert "error-alert" in live_ids
+    assert "toast-container" in live_ids
+
+
+def test_heading_order_sequential_no_skipped_levels(client: TestClient) -> None:
+    """Verify heading levels follow strict sequential descending hierarchy without skips."""
+    parser = DocumentParser()
+    parser.feed(_get_served_html(client))
+    assert len(parser.heading_levels) > 0
+    current_level = parser.heading_levels[0]
+    assert current_level == 1  # Root page heading must be h1
+
+    for level in parser.heading_levels[1:]:
+        assert level <= current_level + 1, (
+            f"Skipped heading level: jumped from h{current_level} to h{level}"
+        )
+        current_level = level

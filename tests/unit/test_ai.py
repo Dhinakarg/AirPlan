@@ -4,6 +4,8 @@ import json
 
 import httpx
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from app.ai.fallback import get_fallback_payload
 from app.ai.guards import (
@@ -51,6 +53,42 @@ def test_validator_rejects_invented_digits() -> None:
         }
     )
     assert validate_assistant_output(bad_json) is None
+
+
+@given(
+    digit=st.integers(min_value=0, max_value=9),
+    prefix=st.text(
+        alphabet=st.characters(
+            whitelist_categories=("Lu", "Ll"),
+            whitelist_characters=" ,.-",
+        ),
+        min_size=0,
+        max_size=20,
+    ),
+    suffix=st.text(
+        alphabet=st.characters(
+            whitelist_categories=("Lu", "Ll"),
+            whitelist_characters=" ,.-",
+        ),
+        min_size=0,
+        max_size=20,
+    ),
+)
+def test_hypothesis_validator_never_accepts_bare_digit_outside_placeholders(
+    digit: int,
+    prefix: str,
+    suffix: str,
+) -> None:
+    """Property: Any output containing bare digits outside {{placeholder}} is strictly rejected."""
+    text_with_digit = f"{prefix}{digit}{suffix}"
+    bad_payload = json.dumps(
+        {
+            "summary": "Clean summary {{index_after}}.",
+            "tips": ["Clean tip."],
+            "answer": text_with_digit,
+        }
+    )
+    assert validate_assistant_output(bad_payload) is None
 
 
 def test_validator_rejects_unknown_placeholders() -> None:

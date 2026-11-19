@@ -4,9 +4,16 @@ from app.constants import (
     COMMUNITY_AVERAGE_TRIP_KM,
     COMMUNITY_CO2_KG_PER_KM_CAR,
     COMMUNITY_PM25_QUALITATIVE_NOTE,
+    MAX_PLEDGE_ENTRIES,
 )
 from app.engine.community import aggregate_pledges
 from app.engine.models import Pledge
+from app.services.community_service import (
+    clear_pledges,
+    get_community_summary,
+    record_pledge,
+    set_pledge_store_capacity,
+)
 
 
 def test_aggregate_pledges_empty() -> None:
@@ -56,3 +63,33 @@ def test_community_pm25_note_is_strictly_qualitative() -> None:
     impact = aggregate_pledges(pledges)
     assert impact.pm25_note == "may reduce local traffic emissions; not a measured PM2.5 change"
     assert "not a measured PM2.5 change" in impact.pm25_note
+
+
+def test_pledge_store_eviction_when_capacity_exceeded() -> None:
+    """Oldest entries are evicted FIFO when pledge store reaches maximum bounded capacity."""
+    clear_pledges()
+    test_capacity = 3
+    set_pledge_store_capacity(test_capacity)
+
+    try:
+        record_pledge(Pledge(area_code="DL-01", action="metro", count=1))
+        record_pledge(Pledge(area_code="DL-02", action="metro", count=2))
+        record_pledge(Pledge(area_code="DL-03", action="metro", count=3))
+
+        summary = get_community_summary()
+        assert summary.participating_households == 3
+        assert summary.trips_avoided == 6
+
+        # Adding 4th entry should evict DL-01 (count=1)
+        record_pledge(Pledge(area_code="DL-04", action="metro", count=4))
+        updated_summary = get_community_summary()
+        assert updated_summary.participating_households == 3
+        # Remaining: DL-02 (2) + DL-03 (3) + DL-04 (4) = 9
+        assert updated_summary.trips_avoided == 9
+
+        # DL-01 should no longer be present
+        evicted_summary = get_community_summary(area_code="DL-01")
+        assert evicted_summary.participating_households == 0
+    finally:
+        set_pledge_store_capacity(MAX_PLEDGE_ENTRIES)
+        clear_pledges()

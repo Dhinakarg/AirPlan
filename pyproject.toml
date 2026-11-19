@@ -88,7 +88,7 @@ strict_equality = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-q --cov=app --cov-report=term-missing --cov-fail-under=90"
+addopts = "-q --cov=app --cov-report=term-missing --cov-fail-under=92"
 testpaths = ["tests"]
 pythonpath = ["."]
 

@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/Dhinakarg/AirPlan/actions/workflows/ci.yml/badge.svg)](https://github.com/Dhinakarg/AirPlan/actions)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
-![Coverage](https://img.shields.io/badge/Coverage-96.80%25-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-96.70%25-brightgreen)
 ![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA-green)
 ![Frontend](https://img.shields.io/badge/Frontend-Vanilla%20ES%20Modules-yellow)
 ![License](https://img.shields.io/badge/License-MIT-teal)
@@ -85,13 +85,13 @@ make check
 
 | Quality Gate | Tool | Status & Evidence |
 | :--- | :--- | :--- |
-| **Python Unit & Integration** | `pytest` | **165 passed** in ~3s with **96.80% coverage** (exceeds 90% target) |
-| **Frontend Tests** | `node --test` | **23 passed**, 0 failed (i18n key parity, state store, enum leaks) |
-| **Static Type Checking** | `mypy --strict` | **Clean** across all 34 source files (0 errors) |
+| **Python Unit & Integration** | `pytest` | **189 passed** in ~4s with **96.70% coverage** (exceeds 92% target) |
+| **Frontend Tests** | `node --test` | **27 passed**, 0 failed (DOM builder, pure helpers, i18n parity, state store, enum leaks) |
+| **Static Type Checking** | `mypy --strict` | **Clean** across all 35 source files (0 errors) |
 | **Linter & Formatting** | `ruff` | **All checks passed** |
 | **Security Auditing** | `bandit` & `pip-audit` | **0 issues identified**; no known dependency vulnerabilities |
 | **Code Complexity** | `radon cc` & `radon mi` | **Grade A** (avg complexity 2.38); 100% Grade A maintainability |
-| **JS File Size Budget** | Custom check | **100% compliant** (all 11 JS modules $\le 200$ lines) |
+| **JS File Size Budget** | Custom check | **100% compliant** (all 14 JS modules $\le 169$ lines) |
 
 ---
 

@@ -1,9 +1,11 @@
 """Unit and functional test suite for AirPlan API endpoints and security middleware."""
 
+import logging
 from http import HTTPStatus
 from typing import Any
 from unittest.mock import patch
 
+import pytest
 from starlette.testclient import TestClient
 
 from app.api.middleware import MAX_REQUEST_SIZE_BYTES, reset_rate_limiter
@@ -420,6 +422,8 @@ def test_security_headers_present_on_all_responses(client: TestClient) -> None:
     assert "default-src 'self'" in headers["Content-Security-Policy"]
     assert "frame-ancestors 'none'" in headers["Content-Security-Policy"]
     assert "Permissions-Policy" in headers
+    assert headers["Cross-Origin-Opener-Policy"] == "same-origin"
+    assert headers["Cross-Origin-Resource-Policy"] == "same-origin"
 
 
 def test_correlation_id_generated_and_returned(client: TestClient) -> None:
@@ -511,3 +515,92 @@ def test_root_endpoint_status(client: TestClient) -> None:
     data = res.json()
     assert data["status"] == "ok"
     assert "app" in data
+
+
+def test_cross_origin_opener_policy_header(client: TestClient) -> None:
+    """Verify Cross-Origin-Opener-Policy is present and set to same-origin."""
+    res = client.get("/health")
+    assert res.headers.get("Cross-Origin-Opener-Policy") == "same-origin"
+
+
+def test_cross_origin_resource_policy_header(client: TestClient) -> None:
+    """Verify Cross-Origin-Resource-Policy is present and set to same-origin."""
+    res = client.get("/health")
+    assert res.headers.get("Cross-Origin-Resource-Policy") == "same-origin"
+
+
+def test_cache_control_no_store_on_api_responses(client: TestClient) -> None:
+    """Verify Cache-Control: no-store is attached to all /api responses."""
+    res_health = client.get("/api/v1/health")
+    assert res_health.headers.get("Cache-Control") == "no-store"
+
+    res_summary = client.get("/api/v1/community/summary")
+    assert res_summary.headers.get("Cache-Control") == "no-store"
+
+
+def test_cache_control_omitted_on_static_assets(client: TestClient) -> None:
+    """Verify static assets under /static do not carry Cache-Control: no-store."""
+    res = client.get("/static/index.html")
+    assert res.headers.get("Cache-Control") != "no-store"
+
+
+def test_rate_limiter_does_not_trust_x_forwarded_for_by_default(client: TestClient) -> None:
+    """Verify spoofed X-Forwarded-For is ignored when TRUSTED_PROXY is false."""
+    reset_rate_limiter()
+    with patch("app.api.middleware.get_settings") as mock_settings:
+        mock_settings.return_value.rate_limit_per_minute = 2
+        mock_settings.return_value.trusted_proxy = False
+
+        res1 = client.get("/health", headers={"X-Forwarded-For": "1.1.1.1"})
+        assert res1.status_code == HTTPStatus.OK
+        res2 = client.get("/health", headers={"X-Forwarded-For": "2.2.2.2"})
+        assert res2.status_code == HTTPStatus.OK
+
+        # 3rd request from same client host triggers 429 despite distinct XFF headers
+        res3 = client.get("/health", headers={"X-Forwarded-For": "3.3.3.3"})
+        assert res3.status_code == HTTPStatus.TOO_MANY_REQUESTS
+
+
+def test_rate_limiter_trusts_x_forwarded_for_when_configured(client: TestClient) -> None:
+    """Verify X-Forwarded-For controls rate-limit bucket when TRUSTED_PROXY is true."""
+    reset_rate_limiter()
+    with patch("app.api.middleware.get_settings") as mock_settings:
+        mock_settings.return_value.rate_limit_per_minute = 1
+        mock_settings.return_value.trusted_proxy = True
+
+        res1 = client.get("/health", headers={"X-Forwarded-For": "203.0.113.195, 10.0.0.1"})
+        assert res1.status_code == HTTPStatus.OK
+
+        # Different forwarded IP succeeds under separate bucket
+        res2 = client.get("/health", headers={"X-Forwarded-For": "198.51.100.44"})
+        assert res2.status_code == HTTPStatus.OK
+
+        # Repeated first forwarded IP triggers 429
+        res3 = client.get("/health", headers={"X-Forwarded-For": "203.0.113.195"})
+        assert res3.status_code == HTTPStatus.TOO_MANY_REQUESTS
+
+
+def test_logs_never_contain_free_text_or_full_coordinates(
+    client: TestClient,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Verify application logs never contain raw user question strings or high-precision GPS."""
+    unique_marker = "SENSITIVE_SECRET_MARKER_998877"
+    lat = 28.613987654321
+    lon = 77.209012345678
+
+    with caplog.at_level(logging.DEBUG):
+        res = client.post(
+            "/api/v1/ask",
+            json={
+                "question": f"Is it safe to run? {unique_marker}",
+                "facts": {"index_after": 50.0, "latitude": lat, "longitude": lon},
+                "language": "en",
+            },
+        )
+        assert res.status_code == HTTPStatus.OK
+
+    log_content = caplog.text
+    assert unique_marker not in log_content
+    assert str(lat) not in log_content
+    assert str(lon) not in log_content

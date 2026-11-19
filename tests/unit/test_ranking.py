@@ -111,3 +111,26 @@ def test_ranking_determinism_and_order_stability(
         assert ranked_1[i].rank == i + 1
         if i > 0:
             assert ranked_1[i - 1].score >= ranked_1[i].score
+
+
+@given(
+    st.floats(min_value=0.0, max_value=10000.0),
+    st.booleans(),
+    st.booleans(),
+    st.booleans(),
+)
+def test_hypothesis_budget_filtering_never_exceeds_budget(
+    budget: float,
+    owns_home: bool,
+    has_transit: bool,
+    has_car: bool,
+) -> None:
+    """Property: Recommended interventions never cost more than the allocated household budget."""
+    context = HouseholdContext(
+        owns_home=owns_home,
+        has_transit_access=has_transit,
+        has_car=has_car,
+    )
+    ranked = rank_interventions(context, budget)
+    for r in ranked:
+        assert r.intervention.cost_inr_per_month <= budget + 1e-6

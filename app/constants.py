@@ -156,9 +156,10 @@ RED_FLAG_OVERRIDE_ACTION: Final[str] = "seek medical care now"
 RED_FLAG_NEGATION_WINDOW_CHARS_EN: Final[int] = 30
 RED_FLAG_NEGATION_WINDOW_CHARS_HI: Final[int] = 25
 
-# --- Request Security and Rate Limiting ---
+# --- Request Security, Storage Limits, and Rate Limiting ---
 MAX_REQUEST_SIZE_BYTES: Final[int] = 100_000
 RATE_LIMIT_WINDOW_SECONDS: Final[float] = 60.0
+MAX_PLEDGE_ENTRIES: Final[int] = 10_000
 
 # --- Atmospheric Data Client Configuration ---
 AIR_QUALITY_BASE_URL: Final[str] = "https://air-quality-api.open-meteo.com/v1/air-quality"

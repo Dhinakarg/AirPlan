@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     air_data_mode: str = Field(default="sample", description="Air data mode (live|sample)")
     rate_limit_per_minute: int = Field(default=60, description="Rate limit per minute")
     cors_origins: str = Field(default="*", description="Allowed CORS origins")
+    trusted_proxy: bool = Field(
+        default=False,
+        description="Whether to trust X-Forwarded-For header for client IP resolution",
+    )
 
 
 @lru_cache

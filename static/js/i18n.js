@@ -34,9 +34,14 @@ export function labelFor(group, value, lang = 'en') {
     activity: 'enum_act_',
     mode: 'enum_mode_',
     cookingFuel: 'enum_fuel_',
+    kitchenExhaust: 'enum_exh_',
+    sweeping: 'enum_sweep_',
   };
-  const prefix = map[group] || `enum_${group}_`;
-  return t(`${prefix}${value}`, lang);
+  const prefix = map[group];
+  if (!prefix) return String(value);
+  const key = `${prefix}${value}`;
+  const translated = t(key, lang);
+  return translated === key ? String(value) : translated;
 }
 
 /**
