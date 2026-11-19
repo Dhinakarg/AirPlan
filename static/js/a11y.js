@@ -2,7 +2,7 @@
  * @fileoverview Accessibility utilities for screen readers, live announcements, and focus management.
  */
 
-let lastFocusedElement = null;
+const triggerMap = new WeakMap();
 
 /**
  * Deliver dynamic text announcements to assistive technology screen readers.
@@ -16,9 +16,7 @@ export function announce(message, priority = 'polite') {
   if (!el) return;
   el.setAttribute('aria-live', priority);
   el.textContent = '';
-  setTimeout(() => {
-    el.textContent = message;
-  }, 50);
+  setTimeout(() => { el.textContent = message; }, 50);
 }
 
 /**
@@ -33,12 +31,12 @@ export function showError(message) {
   if (!message) {
     el.classList.add('sr-only');
     el.textContent = '';
-    return;
+  } else {
+    el.classList.remove('sr-only');
+    el.textContent = message;
+    setFocus(el);
+    announce(`Error: ${message}`, 'assertive');
   }
-  el.classList.remove('sr-only');
-  el.textContent = message;
-  setFocus(el);
-  announce(`Error: ${message}`, 'assertive');
 }
 
 /**
@@ -48,15 +46,10 @@ export function showError(message) {
  */
 export function toggleHighContrast(enable) {
   if (typeof document === 'undefined') return false;
-  const isEnabled =
-    enable !== undefined ? enable : !document.body.classList.contains('high-contrast');
-  if (isEnabled) {
-    document.body.classList.add('high-contrast');
-  } else {
-    document.body.classList.remove('high-contrast');
-  }
-  announce(isEnabled ? 'High contrast mode enabled' : 'High contrast mode disabled');
-  return isEnabled;
+  const on = enable !== undefined ? enable : !document.body.classList.contains('high-contrast');
+  document.body.classList.toggle('high-contrast', on);
+  announce(on ? 'High contrast mode enabled' : 'High contrast mode disabled');
+  return on;
 }
 
 /**
@@ -66,15 +59,10 @@ export function toggleHighContrast(enable) {
  */
 export function toggleSimpleLanguage(enable) {
   if (typeof document === 'undefined') return false;
-  const isEnabled =
-    enable !== undefined ? enable : !document.body.classList.contains('plain-language');
-  if (isEnabled) {
-    document.body.classList.add('plain-language');
-  } else {
-    document.body.classList.remove('plain-language');
-  }
-  announce(isEnabled ? 'Plain language mode enabled' : 'Plain language mode disabled');
-  return isEnabled;
+  const on = enable !== undefined ? enable : !document.body.classList.contains('plain-language');
+  document.body.classList.toggle('plain-language', on);
+  announce(on ? 'Plain language mode enabled' : 'Plain language mode disabled');
+  return on;
 }
 
 /**
@@ -91,7 +79,7 @@ export function setTextSize(size) {
 
 /**
  * Check if Web Speech API is supported.
- * @returns {boolean}
+ * @returns {boolean} True if speech synthesis is available.
  */
 export function isSpeechSupported() {
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -104,9 +92,8 @@ export function isSpeechSupported() {
  * @returns {void}
  */
 export function speakText(text, lang = 'en') {
-  if (!isSpeechSupported()) return;
+  if (!isSpeechSupported() || !text) return;
   window.speechSynthesis.cancel();
-  if (!text) return;
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang === 'hi' ? 'hi-IN' : 'en-US';
   window.speechSynthesis.speak(utterance);
@@ -117,8 +104,7 @@ export function speakText(text, lang = 'en') {
  * @returns {void}
  */
 export function stopSpeaking() {
-  if (!isSpeechSupported()) return;
-  window.speechSynthesis.cancel();
+  if (isSpeechSupported()) window.speechSynthesis.cancel();
 }
 
 /**
@@ -127,9 +113,7 @@ export function stopSpeaking() {
  * @returns {void}
  */
 export function setFocus(element) {
-  if (element && typeof element.focus === 'function') {
-    element.focus();
-  }
+  if (element && typeof element.focus === 'function') element.focus();
 }
 
 /**
@@ -140,40 +124,28 @@ export function setFocus(element) {
  */
 export function openModalDialog(dialog, trigger) {
   if (!dialog) return () => {};
-  lastFocusedElement = trigger || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-  if (typeof dialog.showModal === 'function') {
-    dialog.showModal();
-  } else {
-    dialog.setAttribute('open', '');
-  }
+  const active = trigger || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  if (active) triggerMap.set(dialog, active);
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
 
   const focusables = dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-  if (focusables.length > 0 && focusables[0] instanceof HTMLElement) {
-    focusables[0].focus();
-  }
+  if (focusables.length > 0 && focusables[0] instanceof HTMLElement) focusables[0].focus();
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      closeModalDialog(dialog);
-    } else if (e.key === 'Tab') {
-      const items = Array.from(focusables).filter(el => !el.hasAttribute('disabled'));
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+  const onKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); closeModalDialog(dialog); return; }
+    if (e.key !== 'Tab') return;
+    const items = Array.from(focusables).filter(el => !el.hasAttribute('disabled'));
+    if (!items.length) return;
+    if (e.shiftKey && document.activeElement === items[0]) {
+      e.preventDefault(); items[items.length - 1].focus();
+    } else if (!e.shiftKey && document.activeElement === items[items.length - 1]) {
+      e.preventDefault(); items[0].focus();
     }
   };
-
-  dialog.addEventListener('keydown', handleKeyDown);
+  dialog.addEventListener('keydown', onKey);
   announce('Settings dialog opened');
-  return () => dialog.removeEventListener('keydown', handleKeyDown);
+  return () => dialog.removeEventListener('keydown', onKey);
 }
 
 /**
@@ -183,13 +155,9 @@ export function openModalDialog(dialog, trigger) {
  */
 export function closeModalDialog(dialog) {
   if (!dialog) return;
-  if (typeof dialog.close === 'function') {
-    dialog.close();
-  } else {
-    dialog.removeAttribute('open');
-  }
-  if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
-    lastFocusedElement.focus();
-  }
+  if (typeof dialog.close === 'function') dialog.close();
+  else dialog.removeAttribute('open');
+  const trigger = triggerMap.get(dialog);
+  if (trigger && typeof trigger.focus === 'function') trigger.focus();
   announce('Settings dialog closed');
 }

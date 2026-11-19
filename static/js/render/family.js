@@ -2,37 +2,31 @@
  * @fileoverview Screen 1: Family and Household Setup view renderer.
  */
 
+import { el } from '../dom.js';
 import { labelFor, t } from '../i18n.js';
 import { PRESET_CITIES, getState, setState } from '../state.js';
-
-function el(tag, cls = '', text = '') {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
-  return e;
-}
 
 function field(id, labelText, control, helpText) {
   const f = el('div', 'field'), lbl = el('label', '', labelText);
   lbl.htmlFor = control.id = id;
   f.append(lbl, control);
   if (helpText) {
-    const s = el('small', 'help-text', helpText);
-    s.id = `${id}-help`;
+    const s = el('small', { class: 'help-text', id: `${id}-help` }, helpText);
     control.setAttribute('aria-describedby', s.id);
     f.appendChild(s);
   }
   return f;
 }
 
-function opt(val, text, selected = false) {
-  const o = document.createElement('option');
-  o.value = val;
-  o.textContent = text;
-  if (selected) o.selected = true;
-  return o;
-}
+const opt = (val, text, sel = false) => Object.assign(document.createElement('option'), { value: val, textContent: text, selected: sel });
 
+
+/**
+ * Render Family setup screen into target container.
+ *
+ * @param {HTMLElement} container - DOM container element.
+ * @returns {void}
+ */
 export function renderFamilyScreen(container) {
   container.replaceChildren();
   const s = getState(), lang = s.language;
@@ -124,17 +118,8 @@ export function renderFamilyScreen(container) {
   bLbl.id = 'budget-amount-label';
 
   const bRange = el('input'), bNum = el('input');
-  bRange.type = 'range';
-  bRange.id = 'budget-slider';
-  bRange.min = '0';
-  bRange.max = '20000';
-  bRange.step = '100';
-  bRange.value = String(s.budgetInr);
-  bNum.type = 'number';
-  bNum.id = 'budget-number';
-  bNum.min = '0';
-  bNum.max = '100000';
-  bNum.value = String(s.budgetInr);
+  Object.assign(bRange, { type: 'range', id: 'budget-slider', min: '0', max: '20000', step: '100', value: String(s.budgetInr) });
+  Object.assign(bNum, { type: 'number', id: 'budget-number', min: '0', max: '100000', value: String(s.budgetInr) });
 
   const bHelp = el('small', 'help-text', t('budgetHelp', lang));
   bHelp.id = 'budget-change-help';
@@ -155,7 +140,7 @@ export function renderFamilyScreen(container) {
   c3.append(bF);
   mainCol.appendChild(c3);
 
-  // Actions row (right aligned, no wrapping card)
+  // Actions row
   const actions = el('div', 'actions');
   const nextBtn = el('button', 'btn primary btn-primary', t('nextYourDay', lang));
   nextBtn.type = 'button';
@@ -165,10 +150,14 @@ export function renderFamilyScreen(container) {
 
   layout.appendChild(mainCol);
 
-  // Aside: Sticky "Your household" summary card
+  // Aside summary card
   const aside = el('aside', 'step-aside'), sumCard = el('div', 'card summary-card'), dl = el('dl', 'summary-list');
   sumCard.appendChild(el('h3', '', t('yourHousehold', lang)));
-  const addItem = (dt, dd) => { const it = el('div', 'summary-item'); it.append(el('dt', '', dt), el('dd', '', dd)); dl.appendChild(it); };
+  const addItem = (dt, dd) => {
+    const it = el('div', 'summary-item');
+    it.append(el('dt', '', dt), el('dd', '', dd));
+    dl.appendChild(it);
+  };
   addItem('Members', `${s.members.length} of 6`);
   addItem('Home type', labelFor('leakiness', s.home.leakiness, lang));
   addItem('City', PRESET_CITIES[s.city]?.name.split(' (')[0] || s.city);
@@ -176,6 +165,5 @@ export function renderFamilyScreen(container) {
   sumCard.append(dl, el('p', 'summary-hint', t('hintNextRoutine', lang)));
   aside.appendChild(sumCard);
   layout.appendChild(aside);
-
   container.appendChild(layout);
 }

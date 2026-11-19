@@ -4,19 +4,13 @@
 
 import { announce, showError } from '../a11y.js';
 import { simulateRoutine } from '../api.js';
+import { el } from '../dom.js';
 import { labelFor, t } from '../i18n.js';
 import { getState, setState } from '../state.js';
 
 const ACTIVITIES = ['sleep', 'rest', 'light', 'walk', 'exercise', 'cook'];
 const MODES = ['home', 'walk', 'cycle', 'metro', 'bus', 'auto_rickshaw', 'car', 'outdoor'];
 const HOURS = Array.from({ length: 25 }, (_, i) => ({ val: String(i), label: `${i}:00` }));
-
-function el(tag, cls = '', text = '') {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
-  return e;
-}
 
 function makeSel(ariaLabel, options, currentVal, onChange) {
   const sel = document.createElement('select');
@@ -32,6 +26,18 @@ function makeSel(ariaLabel, options, currentVal, onChange) {
   return sel;
 }
 
+function updateMemberRoutine(memberIdx, newRoutine) {
+  const members = [...getState().members];
+  members[memberIdx].routine = newRoutine;
+  setState({ members });
+}
+
+/**
+ * Render Day Ledger routine configuration screen into container.
+ *
+ * @param {HTMLElement} container - Target container element.
+ * @returns {void}
+ */
 export function renderLedgerScreen(container) {
   container.replaceChildren();
   const s = getState(), lang = s.language;
@@ -134,10 +140,4 @@ export function renderLedgerScreen(container) {
   layout.appendChild(aside);
 
   container.appendChild(layout);
-}
-
-function updateMemberRoutine(memberIdx, newRoutine) {
-  const members = [...getState().members];
-  members[memberIdx].routine = newRoutine;
-  setState({ members });
 }

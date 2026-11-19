@@ -70,6 +70,7 @@ function createInitialState() {
     isDemoData: false,
     isLoading: false,
     error: null,
+    isSpeaking: false,
   };
 }
 

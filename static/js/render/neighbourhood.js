@@ -4,50 +4,62 @@
 
 import { announce, showError } from '../a11y.js';
 import { fetchCommunitySummary, submitPledge } from '../api.js';
+import { el } from '../dom.js';
 import { t } from '../i18n.js';
 import { getState, setState } from '../state.js';
 
+function renderCommunityCards(container, summary, lang) {
+  if (!summary) return;
+  const wrap = el('div', 'community-dashboard');
+  wrap.style.marginTop = '24px';
+
+  // Card 1: CO2 Emissions
+  const co2Card = el('div', 'card');
+  const co2P2 = el('p', '', `CO₂ Reductions: ${summary.co2_kg_avoided.toFixed(1)} kg avoided across ${summary.participating_households} households.`);
+  co2P2.style.fontWeight = '700';
+  co2P2.style.color = '#15803d';
+  co2Card.append(
+    el('h3', '', `🌱 ${t('co2Card', lang)}`),
+    el('p', '', `Trips Avoided: ${summary.trips_avoided} • Distance Saved: ${summary.km_avoided} km`),
+    co2P2,
+  );
+  wrap.appendChild(co2Card);
+
+  // Card 2: PM2.5 Qualitative Note
+  const pm25Card = el('div', 'card callout-card');
+  pm25Card.append(
+    el('h3', '', `💨 ${t('pm25Card', lang)}`),
+    el('p', '', summary.pm25_note),
+    el('p', 'provenance-tag', 'Scientific basis: Localized trip avoidance reduces neighborhood vehicular tailpipe emissions qualitatively.'),
+  );
+  wrap.appendChild(pm25Card);
+
+  container.appendChild(wrap);
+}
+
 /**
  * Render Neighbourhood Screen.
- * @param {HTMLElement} container - Target container.
+ *
+ * @param {HTMLElement} container - Target container element.
  * @returns {void}
  */
 export function renderNeighbourhoodScreen(container) {
   container.replaceChildren();
-  const s = getState();
-  const lang = s.language;
+  const s = getState(), lang = s.language;
+  container.appendChild(el('h3', '', t('neighbourhoodTitle', lang)));
 
-  const title = document.createElement('h3');
-  title.textContent = t('neighbourhoodTitle', lang);
-  container.appendChild(title);
-
-  // 1. Pledge Form
-  const form = document.createElement('form');
-  form.className = 'form-grid card';
+  const form = el('form', 'form-grid card');
   form.noValidate = true;
 
   // Area Code
-  const areaRow = document.createElement('div');
-  areaRow.className = 'form-group';
-  const areaLbl = document.createElement('label');
-  areaLbl.htmlFor = 'pledge-area-code';
-  areaLbl.textContent = t('areaCode', lang);
-  const areaIn = document.createElement('input');
-  areaIn.type = 'text';
-  areaIn.id = 'pledge-area-code';
-  areaIn.value = 'DL-01';
-  areaIn.pattern = '^[A-Z0-9-]{3,10}$';
-  areaRow.appendChild(areaLbl);
-  areaRow.appendChild(areaIn);
-  form.appendChild(areaRow);
+  const areaIn = el('input');
+  Object.assign(areaIn, { type: 'text', id: 'pledge-area-code', value: 'DL-01', pattern: '^[A-Z0-9-]{3,10}$' });
+  const areaLbl = el('label', '', t('areaCode', lang));
+  areaLbl.htmlFor = areaIn.id;
+  form.appendChild(el('div', 'form-group', [areaLbl, areaIn]));
 
   // Action Select
-  const actRow = document.createElement('div');
-  actRow.className = 'form-group';
-  const actLbl = document.createElement('label');
-  actLbl.htmlFor = 'pledge-action-select';
-  actLbl.textContent = t('pledgeAction', lang);
-  const actSel = document.createElement('select');
+  const actSel = el('select');
   actSel.id = 'pledge-action-select';
   [
     { id: 'metro', label: 'Use Metro transit instead of car' },
@@ -55,36 +67,24 @@ export function renderNeighbourhoodScreen(container) {
     { id: 'no_waste_burning', label: 'Report and halt open waste burning' },
     { id: 'combine_errands', label: 'Combine local errand trips' },
   ].forEach((a) => {
-    const opt = document.createElement('option');
+    const opt = el('option', '', a.label);
     opt.value = a.id;
-    opt.textContent = a.label;
     actSel.appendChild(opt);
   });
-  actRow.appendChild(actLbl);
-  actRow.appendChild(actSel);
-  form.appendChild(actRow);
+  const actLbl = el('label', '', t('pledgeAction', lang));
+  actLbl.htmlFor = actSel.id;
+  form.appendChild(el('div', 'form-group', [actLbl, actSel]));
 
   // Count
-  const countRow = document.createElement('div');
-  countRow.className = 'form-group';
-  const countLbl = document.createElement('label');
-  countLbl.htmlFor = 'pledge-count-input';
-  countLbl.textContent = t('pledgeCount', lang);
-  const countIn = document.createElement('input');
-  countIn.type = 'number';
-  countIn.id = 'pledge-count-input';
-  countIn.min = '1';
-  countIn.max = '100';
-  countIn.value = '5';
-  countRow.appendChild(countLbl);
-  countRow.appendChild(countIn);
-  form.appendChild(countRow);
+  const countIn = el('input');
+  Object.assign(countIn, { type: 'number', id: 'pledge-count-input', min: '1', max: '100', value: '5' });
+  const countLbl = el('label', '', t('pledgeCount', lang));
+  countLbl.htmlFor = countIn.id;
+  form.appendChild(el('div', 'form-group', [countLbl, countIn]));
 
   // Submit button
-  const submitBtn = document.createElement('button');
+  const submitBtn = el('button', 'btn btn-primary', `🤝 ${t('submitPledge', lang)}`);
   submitBtn.type = 'submit';
-  submitBtn.className = 'btn btn-primary';
-  submitBtn.textContent = `🤝 ${t('submitPledge', lang)}`;
   form.appendChild(submitBtn);
 
   form.addEventListener('submit', async (e) => {
@@ -106,50 +106,5 @@ export function renderNeighbourhoodScreen(container) {
   });
 
   container.appendChild(form);
-
-  // 2. Aggregate Dashboard (Separate Cards for CO2 and PM2.5)
   renderCommunityCards(container, s.communitySummary, lang);
 }
-
-function renderCommunityCards(container, summary, lang) {
-  if (!summary) return;
-
-  const dashboardWrap = document.createElement('div');
-  dashboardWrap.className = 'community-dashboard';
-  dashboardWrap.style.marginTop = '24px';
-
-  // Card 1: CO2 Emissions and Trips Avoided Card
-  const co2Card = document.createElement('div');
-  co2Card.className = 'card';
-  const co2Title = document.createElement('h3');
-  co2Title.textContent = `🌱 ${t('co2Card', lang)}`;
-  const co2P1 = document.createElement('p');
-  co2P1.textContent = `Trips Avoided: ${summary.trips_avoided} • Distance Saved: ${summary.km_avoided} km`;
-  const co2P2 = document.createElement('p');
-  co2P2.style.fontWeight = '700';
-  co2P2.style.color = '#15803d';
-  co2P2.textContent = `CO₂ Reductions: ${summary.co2_kg_avoided.toFixed(1)} kg avoided across ${summary.participating_households} households.`;
-  co2Card.appendChild(co2Title);
-  co2Card.appendChild(co2P1);
-  co2Card.appendChild(co2P2);
-  dashboardWrap.appendChild(co2Card);
-
-  // Card 2: PM2.5 Qualitative Note Card (Separate Card)
-  const pm25Card = document.createElement('div');
-  pm25Card.className = 'card callout-card';
-  const pm25Title = document.createElement('h3');
-  pm25Title.textContent = `💨 ${t('pm25Card', lang)}`;
-  const pm25P = document.createElement('p');
-  pm25P.textContent = summary.pm25_note;
-  const pm25Prov = document.createElement('p');
-  pm25Prov.className = 'provenance-tag';
-  pm25Prov.textContent =
-    'Scientific basis: Localized trip avoidance reduces neighborhood vehicular tailpipe emissions qualitatively.';
-  pm25Card.appendChild(pm25Title);
-  pm25Card.appendChild(pm25P);
-  pm25Card.appendChild(pm25Prov);
-  dashboardWrap.appendChild(pm25Card);
-
-  container.appendChild(dashboardWrap);
-}
-
