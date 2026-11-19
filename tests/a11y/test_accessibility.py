@@ -266,6 +266,20 @@ def test_step_layout_exists_in_served_html(client: TestClient) -> None:
     assert "step-layout" in html
 
 
+def test_index_html_loads_split_stylesheets(client: TestClient) -> None:
+    """Verify index.html loads modular split stylesheets in strict cascade order."""
+    html = _get_served_html(client)
+    expected_stylesheets = [
+        "/static/css/tokens.css",
+        "/static/css/base.css",
+        "/static/css/layout.css",
+        "/static/css/components.css",
+        "/static/css/themes.css",
+    ]
+    for sheet in expected_stylesheets:
+        assert sheet in html, f"Stylesheet link {sheet} missing in served index.html"
+
+
 def _srgb_to_linear(val: float) -> float:
     """Convert normalized sRGB channel to linear light value."""
     return val / 12.92 if val <= 0.04045 else ((val + 0.055) / 1.055) ** 2.4
@@ -340,11 +354,31 @@ def test_wcag_contrast_ratios_dark_mode() -> None:
 
 
 def test_wcag_contrast_ratios_high_contrast_mode() -> None:
-    """Verify high contrast mode achieves enhanced contrast >= 7:1 for text."""
+    """Verify high contrast mode achieves enhanced contrast >= 7:1 for text and >= 3:1 borders."""
     bg = "#000000"
-    for hex_val in ("#ffffff", "#ffff00", "#00ffff", "#55ff55"):
+    text_tokens = [
+        ("#ffffff", "text-primary / text-muted"),
+        ("#ffff00", "text-secondary"),
+        ("#00ffff", "color-accent"),
+        ("#55ff55", "color-success"),
+        ("#ffff55", "color-warning"),
+        ("#ff7070", "color-danger"),
+        ("#55ffff", "color-info"),
+    ]
+    for hex_val, name in text_tokens:
         ratio = _contrast_ratio(hex_val, bg)
-        assert ratio >= 7.0, f"High contrast token {hex_val} contrast {ratio:.2f} < 7:1"
+        assert ratio >= 7.0, (
+            f"High contrast text token {name} ({hex_val}) contrast {ratio:.2f} < 7:1"
+        )
+
+    ui_tokens = [
+        ("#ffffff", "border-strong / border-subtle / border-card"),
+        ("#ffff00", "color-focus"),
+        ("#00ffff", "color-accent-border"),
+    ]
+    for hex_val, name in ui_tokens:
+        ratio = _contrast_ratio(hex_val, bg)
+        assert ratio >= 3.0, f"High contrast UI token {name} ({hex_val}) contrast {ratio:.2f} < 3:1"
 
 
 def test_css_font_sizes_never_below_14px() -> None:

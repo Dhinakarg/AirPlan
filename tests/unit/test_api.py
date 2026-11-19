@@ -499,6 +499,11 @@ def test_global_exception_handler_returns_generic_error() -> None:
 
 def test_static_files_served(client: TestClient) -> None:
     """Verify static assets are properly served under /static."""
+    for css_name in ("tokens.css", "base.css", "layout.css", "components.css", "themes.css"):
+        res_sub_css = client.get(f"/static/css/{css_name}")
+        assert res_sub_css.status_code == HTTPStatus.OK
+        assert "text/css" in res_sub_css.headers.get("content-type", "")
+
     res_css = client.get("/static/styles.css")
     assert res_css.status_code == HTTPStatus.OK
     assert "text/css" in res_css.headers.get("content-type", "")

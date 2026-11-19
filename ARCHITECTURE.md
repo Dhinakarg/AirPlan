@@ -170,7 +170,7 @@ final_output = substitute_payload(validated_template, facts)
 ```
 
 ### 5. Automated Fallback Safety Net
-If the LLM generates hallucinated digits, malformed JSON, or fails network connectivity, the system does not fail or retry with temperature variations. It drops immediately to [app/ai/fallback.py](file:///d:/Air%20Quality%20Assistant/app/ai/fallback.py), which renders pre-compiled, linguistically verified templates in English or Hindi.
+If the LLM generates hallucinated digits, malformed JSON, or fails network connectivity, the system does not fail or retry with temperature variations. It drops immediately to [app/ai/fallback.py](app/ai/fallback.py), which renders pre-compiled, linguistically verified templates in English or Hindi.
 
 ---
 
@@ -179,4 +179,4 @@ If the LLM generates hallucinated digits, malformed JSON, or fails network conne
 The client-side interface resides in `static/` and adheres to three fundamental constraints:
 1. **Zero committed `node_modules` or bundlers**: Built with pure standard ECMAScript modules (`<script type="module">`).
 2. **Strict Zero-`innerHTML` Policy**: Protects against Cross-Site Scripting (XSS). All elements are instantiated using `document.createElement()`, `element.textContent`, and DOM manipulation.
-3. **Reactive Single-Directional State Store**: [static/js/state.js](file:///d:/Air%20Quality%20Assistant/static/js/state.js) acts as the single source of truth with immutable notifications to registered UI rendering components.
+3. **Reactive Single-Directional State Store**: [static/js/state.js](static/js/state.js) acts as the single source of truth with immutable notifications to registered UI rendering components.

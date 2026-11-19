@@ -1,6 +1,6 @@
 # AirPlan Modeling Assumptions & Domain Constant Provenance
 
-This document records the physical meaning, literature rationale, and confidence rating for every domain factor in [app/constants.py](file:///d:/Air%20Quality%20Assistant/app/constants.py), followed by verified findings from the Open-Meteo meteorological API integration audit.
+This document records the physical meaning, literature rationale, and confidence rating for every domain factor in [app/constants.py](../app/constants.py), followed by verified findings from the Open-Meteo meteorological API integration audit.
 
 ---
 
@@ -129,7 +129,7 @@ Minute ventilation volumes based on the US EPA *Exposure Factors Handbook* (Chap
 
 ## 2. Open-Meteo Meteorological API Verification
 
-During engineering discovery (Prompt 4 / Prompt 6), Open-Meteo's official API documentation and schemas were investigated. The following facts were confirmed and implemented in [app/data/air_client.py](file:///d:/Air%20Quality%20Assistant/app/data/air_client.py):
+During engineering discovery (Prompt 4 / Prompt 6), Open-Meteo's official API documentation and schemas were investigated. The following facts were confirmed and implemented in [app/data/air_client.py](../app/data/air_client.py):
 
 1. **Hourly $PM_{2.5}$ Variable**:
    - **Endpoint**: `https://air-quality-api.open-meteo.com/v1/air-quality`
