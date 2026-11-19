@@ -62,4 +62,3 @@ def test_markdown_relative_links_resolve_to_existing_files() -> None:
                 broken_links.append(f"{rel_path}: link [{text}]({href}) cannot be resolved")
 
     assert not broken_links, "Broken markdown links found:\n" + "\n".join(broken_links)
-

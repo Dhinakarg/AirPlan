@@ -1,0 +1,159 @@
+/**
+ * AirPlan Cards & Interactive Surfaces Stylesheet
+ * Cascade Level 4.1: Foundational cards, hero banner, and member summary cards.
+ * Provides containment styling and household member visual layouts.
+ * Explicit class selectors only without element entanglement.
+ */
+
+/* Core Cards */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+/* First-Load Hero */
+.hero-banner {
+  background: linear-gradient(135deg, var(--color-accent-surface) 0%, var(--bg-surface) 100%);
+  border: 1px solid var(--color-accent-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.hero-headline {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  line-height: var(--line-height-heading);
+}
+
+.hero-subhead {
+  font-size: var(--text-md);
+  color: var(--text-secondary);
+  max-width: 680px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Family Member Compact Cards */
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  gap: var(--space-3);
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-surface);
+  border: 1px solid var(--color-accent-border);
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+.member-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-name {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+}
+
+.member-sublabel,
+.member-counter {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* Household Summary Card */
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.summary-card h3 {
+  margin: 0 0 var(--space-1);
+  font-size: 1.125rem;
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-card);
+  font-size: 0.9375rem;
+}
+
+.summary-item:last-of-type {
+  border-bottom: none;
+}
+
+.summary-item dt {
+  color: var(--text-muted);
+  font-weight: var(--font-normal);
+  margin: 0;
+}
+
+.summary-item dd {
+  color: var(--text-primary);
+  font-weight: var(--font-semibold);
+  margin: 0;
+}
+
+.summary-hint {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-surface-elevated);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  border-left: 3px solid var(--color-accent);
+}

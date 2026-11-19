@@ -274,11 +274,37 @@ def test_index_html_loads_split_stylesheets(client: TestClient) -> None:
         "/static/css/base.css",
         "/static/css/layout.css",
         "/static/css/nav.css",
-        "/static/css/components.css",
+        "/static/css/buttons.css",
+        "/static/css/cards.css",
+        "/static/css/forms.css",
+        "/static/css/results.css",
+        "/static/css/feedback.css",
+        "/static/css/dialogs.css",
         "/static/css/themes.css",
     ]
     for sheet in expected_stylesheets:
         assert sheet in html, f"Stylesheet link {sheet} missing in served index.html"
+
+    indices = [html.index(s) for s in expected_stylesheets]
+    assert indices == sorted(indices), f"Stylesheets not in cascade order: {indices}"
+
+
+def test_css_and_js_file_line_limits() -> None:
+    """Assert all CSS files are <= 200 lines and all JS files are <= 150 lines."""
+    static_root = Path(__file__).resolve().parent.parent.parent / "static"
+    violations: list[str] = []
+
+    for css_file in (static_root / "css").glob("*.css"):
+        lines = len(css_file.read_text(encoding="utf-8").splitlines())
+        if lines > 200:
+            violations.append(f"{css_file.name}: {lines} lines exceeds 200 limit")
+
+    for js_file in (static_root / "js").rglob("*.js"):
+        lines = len(js_file.read_text(encoding="utf-8").splitlines())
+        if lines > 150:
+            violations.append(f"{js_file.name}: {lines} lines exceeds 150 limit")
+
+    assert not violations, "Static asset line budget violations:\n" + "\n".join(violations)
 
 
 def _srgb_to_linear(val: float) -> float:

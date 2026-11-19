@@ -1,0 +1,74 @@
+/**
+ * AirPlan Interactive Buttons Stylesheet
+ * Cascade Level 4.0: Accessible button triggers, primary, secondary, and ghost variants.
+ * Guarantees minimum 44px touch targets and distinct focus rings.
+ * Explicit class selectors only without element entanglement.
+ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  background: transparent;
+  color: var(--text-primary);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-primary,
+button.primary,
+button[type="submit"] {
+  background: var(--color-accent);
+  color: var(--text-inverse);
+  border-color: var(--color-accent);
+}
+
+.btn-primary:hover,
+button.primary:hover,
+button[type="submit"]:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--text-primary);
+}
+
+.btn-ghost,
+button.ghost {
+  background: transparent;
+  color: var(--color-danger);
+  border-color: transparent;
+}
+
+.btn-ghost:hover,
+button.ghost:hover {
+  background: var(--color-danger-bg);
+}
+
+.btn-ghost-sm {
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.btn-ghost-sm:hover {
+  background: var(--color-danger-bg);
+}
+

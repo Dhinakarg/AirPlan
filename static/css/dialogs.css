@@ -1,0 +1,45 @@
+/**
+ * AirPlan Dialogs & Modal Surfaces Stylesheet
+ * Cascade Level 4.5: Native accessible HTML5 dialog, modal backdrop, and setting rows.
+ * Provides focus trapping surfaces, dismissal buttons, and accessible popovers.
+ * Explicit class selectors only without element entanglement.
+ */
+
+.settings-dialog {
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  max-width: 480px;
+  width: 90vw;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  margin: auto;
+}
+
+.settings-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dialog-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-card);
+}
+

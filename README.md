@@ -85,13 +85,13 @@ make check
 
 | Quality Gate | Tool | Status & Evidence |
 | :--- | :--- | :--- |
-| **Python Unit & Integration** | `pytest` | **192 passed** in ~4s with **96.71% coverage** (exceeds 92% target) |
+| **Python Unit & Integration** | `pytest` | **193 passed** in ~4s with **96.71% coverage** (exceeds 92% target) |
 | **Frontend Tests** | `node --test` | **27 passed**, 0 failed (DOM builder, pure helpers, i18n parity, state store, enum leaks) |
 | **Static Type Checking** | `mypy --strict` | **Clean** across all 35 source files (0 errors) |
 | **Linter & Formatting** | `ruff` | **All checks passed** |
 | **Security Auditing** | `bandit` & `pip-audit` | **0 issues identified**; no known dependency vulnerabilities |
 | **Code Complexity** | `radon cc` & `radon mi` | **Grade A** (avg complexity 2.38); 100% Grade A maintainability |
-| **JS File Size Budget** | Custom check | **100% compliant** (all 14 JS modules $\le 169$ lines) |
+| **Modular File Size Budgets** | Custom check | **100% compliant** (all 16 JS modules $\le 150$ lines, all 10 CSS $\le 200$ lines) |
 
 ---
 

@@ -504,7 +504,12 @@ def test_static_files_served(client: TestClient) -> None:
         "base.css",
         "layout.css",
         "nav.css",
-        "components.css",
+        "buttons.css",
+        "cards.css",
+        "forms.css",
+        "results.css",
+        "feedback.css",
+        "dialogs.css",
         "themes.css",
     ):
         res_sub_css = client.get(f"/static/css/{css_name}")

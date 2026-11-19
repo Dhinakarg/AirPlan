@@ -1,0 +1,77 @@
+/**
+ * AirPlan Forms & Controls Stylesheet
+ * Cascade Level 4.2: Form fields, interactive inputs, dropdowns, ranges, and sliders.
+ * Standardizes accessible inputs, validation labels, and touch targets.
+ * Explicit class and input attribute selectors only without element entanglement.
+ */
+
+/* Form Fields & Label Architecture */
+.form-group,
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field select,
+.form-select {
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.field input:focus,
+.field select:focus,
+.form-select:focus {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.help-text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.form-error {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+  font-weight: var(--font-semibold);
+}
+
+/* Range Slider Controls */
+input[type="range"] {
+  flex: 1;
+  min-height: var(--target-min);
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Checkbox Toggle Controls */
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Action Container */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+

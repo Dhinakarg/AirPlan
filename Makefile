@@ -22,7 +22,7 @@ complexity:
 	radon mi app -n B
 
 jslines:
-	python -c "import glob, sys; files = sorted(glob.glob('static/js/**/*.js', recursive=True)); [print(len(open(f, encoding='utf-8').readlines()), f) for f in files]; over = [f for f in files if len(open(f, encoding='utf-8').readlines()) > 200]; sys.exit(1) if over else None"
+	python -c "import glob, sys; css = [f for f in glob.glob('static/css/*.css') if len(open(f, encoding='utf-8').readlines()) > 200]; js = [f for f in glob.glob('static/js/**/*.js', recursive=True) if len(open(f, encoding='utf-8').readlines()) > 150]; sys.exit(1) if css or js else None"
 
 test:
 	pytest --cov=app
