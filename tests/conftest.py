@@ -126,15 +126,20 @@ def sample_routine() -> list[RoutineBlock]:
     ]
 
 
-@pytest.fixture
-def valid_routine_dicts() -> list[dict[str, Any]]:
-    """Provide standard valid routine blocks in dictionary format."""
+def get_canonical_routine_dicts() -> list[dict[str, Any]]:
+    """Return reusable canonical 24h routine dictionary blocks."""
     return [
         {"start_hour": 0, "end_hour": 7, "activity": "sleep", "mode": "home"},
         {"start_hour": 7, "end_hour": 8, "activity": "cook", "mode": "home"},
         {"start_hour": 8, "end_hour": 18, "activity": "light", "mode": "home"},
         {"start_hour": 18, "end_hour": 24, "activity": "sleep", "mode": "home"},
     ]
+
+
+@pytest.fixture
+def valid_routine_dicts() -> list[dict[str, Any]]:
+    """Provide standard valid routine blocks in dictionary format."""
+    return get_canonical_routine_dicts()
 
 
 @pytest.fixture

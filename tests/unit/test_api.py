@@ -10,16 +10,9 @@ from app.api.middleware import MAX_REQUEST_SIZE_BYTES, reset_rate_limiter
 from app.api.schemas import ErrorEnvelope
 from app.main import app
 from app.services.community_service import clear_pledges
+from tests.conftest import get_canonical_routine_dicts
 
-
-def _valid_routine_blocks() -> list[dict[str, Any]]:
-    """Helper returning standard valid routine blocks."""
-    return [
-        {"start_hour": 0, "end_hour": 7, "activity": "sleep", "mode": "home"},
-        {"start_hour": 7, "end_hour": 8, "activity": "cook", "mode": "home"},
-        {"start_hour": 8, "end_hour": 18, "activity": "light", "mode": "home"},
-        {"start_hour": 18, "end_hour": 24, "activity": "sleep", "mode": "home"},
-    ]
+_valid_routine_blocks = get_canonical_routine_dicts
 
 
 def test_health_endpoints(client: TestClient) -> None:
@@ -160,6 +153,10 @@ def test_plan_validation_invalid_lat_lon(client: TestClient) -> None:
     }
     res = client.post("/api/v1/plan", json=payload_bad_lat)
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data1 = res.json()
+    assert "error" in data1
+    assert "latitude" in data1["error"]
+    assert "correlation_id" in data1
 
     payload_bad_lon = {
         "members": [
@@ -175,6 +172,10 @@ def test_plan_validation_invalid_lat_lon(client: TestClient) -> None:
     }
     res2 = client.post("/api/v1/plan", json=payload_bad_lon)
     assert res2.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data2 = res2.json()
+    assert "error" in data2
+    assert "longitude" in data2["error"]
+    assert "correlation_id" in data2
 
 
 def test_simulate_endpoint_happy_path(client: TestClient) -> None:
@@ -214,6 +215,10 @@ def test_simulate_validation_extra_fields(client: TestClient) -> None:
     }
     response = client.post("/api/v1/simulate", json=payload)
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = response.json()
+    assert "error" in data
+    assert "extra_field" in data["error"]
+    assert "correlation_id" in data
 
 
 def test_home_analyze_endpoint_happy_path(client: TestClient) -> None:
@@ -262,6 +267,10 @@ def test_home_analyze_validation_extra_fields(client: TestClient) -> None:
     }
     response = client.post("/api/v1/home/analyze", json=payload)
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data = response.json()
+    assert "error" in data
+    assert "extra_sensor_id" in data["error"]
+    assert "correlation_id" in data
 
 
 def test_community_pledges_and_summary_flow(client: TestClient) -> None:
@@ -306,6 +315,9 @@ def test_community_pledge_invalid_area_code(client: TestClient) -> None:
         json={"area_code": "dl-01", "action": "metro", "count": 1},
     )
     assert res.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data1 = res.json()
+    assert "error" in data1
+    assert "correlation_id" in data1
 
     # Too short
     res_short = client.post(
@@ -313,6 +325,9 @@ def test_community_pledge_invalid_area_code(client: TestClient) -> None:
         json={"area_code": "D1", "action": "metro", "count": 1},
     )
     assert res_short.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data2 = res_short.json()
+    assert "error" in data2
+    assert "correlation_id" in data2
 
 
 def test_community_pledge_count_out_of_bounds(client: TestClient) -> None:
@@ -322,12 +337,18 @@ def test_community_pledge_count_out_of_bounds(client: TestClient) -> None:
         json={"area_code": "DL-01", "action": "metro", "count": 0},
     )
     assert res_zero.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data1 = res_zero.json()
+    assert "error" in data1
+    assert "correlation_id" in data1
 
     res_huge = client.post(
         "/api/v1/community/pledges",
         json={"area_code": "DL-01", "action": "metro", "count": 1001},
     )
     assert res_huge.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    data2 = res_huge.json()
+    assert "error" in data2
+    assert "correlation_id" in data2
 
 
 def test_ask_endpoint_happy_path(client: TestClient) -> None:
