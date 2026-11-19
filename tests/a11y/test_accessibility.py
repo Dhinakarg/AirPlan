@@ -273,6 +273,7 @@ def test_index_html_loads_split_stylesheets(client: TestClient) -> None:
         "/static/css/tokens.css",
         "/static/css/base.css",
         "/static/css/layout.css",
+        "/static/css/nav.css",
         "/static/css/components.css",
         "/static/css/themes.css",
     ]
