@@ -1,0 +1,84 @@
+{
+  "members": [
+    {
+      "name": "Aarav",
+      "age_group": "child",
+      "sensitivity": "asthma_or_heart",
+      "routine": [
+        {
+          "start_hour": 0,
+          "end_hour": 7,
+          "activity": "sleep",
+          "mode": "home"
+        },
+        {
+          "start_hour": 7,
+          "end_hour": 14,
+          "activity": "light",
+          "mode": "home"
+        },
+        {
+          "start_hour": 14,
+          "end_hour": 16,
+          "activity": "exercise",
+          "mode": "outdoor"
+        },
+        {
+          "start_hour": 16,
+          "end_hour": 24,
+          "activity": "sleep",
+          "mode": "home"
+        }
+      ]
+    },
+    {
+      "name": "Priya",
+      "age_group": "adult",
+      "sensitivity": "none",
+      "routine": [
+        {
+          "start_hour": 0,
+          "end_hour": 8,
+          "activity": "sleep",
+          "mode": "home"
+        },
+        {
+          "start_hour": 8,
+          "end_hour": 9,
+          "activity": "commute",
+          "mode": "metro"
+        },
+        {
+          "start_hour": 9,
+          "end_hour": 18,
+          "activity": "light",
+          "mode": "home"
+        },
+        {
+          "start_hour": 18,
+          "end_hour": 19,
+          "activity": "commute",
+          "mode": "metro"
+        },
+        {
+          "start_hour": 19,
+          "end_hour": 24,
+          "activity": "rest",
+          "mode": "home"
+        }
+      ]
+    }
+  ],
+  "home": {
+    "leakiness": "average",
+    "purifier": false,
+    "windows_open_hours": [
+      13,
+      14
+    ]
+  },
+  "latitude": 28.61,
+  "longitude": 77.21,
+  "budget_inr": 1000.0,
+  "language": "en"
+}

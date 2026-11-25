@@ -108,9 +108,22 @@ export function renderResultsScreen(container) {
 
   // 2. Three insight cards
   const w = plan.ventilation_window;
-  const cVent = el('div', 'card grid-col-4', [el('h3', '', `🪟 Best time to air`), el('p', '', w ? `${w.start_hour}:00–${w.end_hour}:00` : '12:00–14:00'), el('small', 'help-text', w ? `Avg PM2.5: ${formatConcentration(w.avg_pm25)}` : 'Midday smog dispersion')]);
-  const cOut = el('div', 'card grid-col-4', [el('h3', '', `⚠️ Worst outdoor time`), el('p', '', '18:00–21:00 & 06:00–08:00'), el('small', 'help-text', 'Evening peak traffic combined with night-time inversion.')]);
-  const cInv = el('div', 'card grid-col-4', [el('h3', '', `🌡️ Atmospheric trap`), el('p', '', 'Active boundary layer inversion'), el('small', 'help-text', 'Trapping ground-level particulate matter until midday heating.')]);
+  const ww = plan.worst_window;
+  const cVent = el('div', 'card grid-col-4', [
+    el('h3', '', '🪟 Best time to air'),
+    el('p', '', w ? `${w.start_hour}:00–${w.end_hour}:00` : '12:00–14:00'),
+    el('small', 'help-text', w ? `Avg PM2.5: ${formatConcentration(w.mean_pm25)}` : 'Midday smog dispersion'),
+  ]);
+  const cOut = el('div', 'card grid-col-4', [
+    el('h3', '', '⚠️ Worst outdoor time'),
+    el('p', '', ww ? `${ww.start_hour}:00–${ww.end_hour}:00` : '18:00–21:00'),
+    el('small', 'help-text', ww ? `Avg PM2.5: ${formatConcentration(ww.mean_pm25)}` : 'Evening peak traffic and night-time inversion.'),
+  ]);
+  const cInv = el('div', 'card grid-col-4', [
+    el('h3', '', '🌡️ Atmospheric trap'),
+    el('p', '', 'Active boundary layer inversion'),
+    el('small', 'help-text', 'Trapping ground-level particulate matter until midday heating.'),
+  ]);
   grid.append(cVent, cOut, cInv);
 
   // 3. Top-3 actions

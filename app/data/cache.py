@@ -9,10 +9,33 @@ from app.engine.models import HourlyAir
 AIR_CACHE_TTL_SECONDS: Final[int] = 900  # 15 minutes
 AIR_CACHE_MAXSIZE: Final[int] = 256
 
-_AIR_CACHE: TTLCache[tuple[float, float, str], list[HourlyAir]] = TTLCache(
-    maxsize=AIR_CACHE_MAXSIZE,
-    ttl=AIR_CACHE_TTL_SECONDS,
-)
+
+class AirCache:
+    """Bounded in-memory TTLCache container for hourly air quality observations."""
+
+    def __init__(self, maxsize: int = AIR_CACHE_MAXSIZE, ttl: int = AIR_CACHE_TTL_SECONDS) -> None:
+        """Initialize AirCache with capacity and expiration parameters."""
+        self._cache: TTLCache[tuple[float, float, str], list[HourlyAir]] = TTLCache(
+            maxsize=maxsize,
+            ttl=ttl,
+        )
+
+    def get(self, lat: float, lon: float, date_str: str) -> list[HourlyAir] | None:
+        """Retrieve cached observation if available."""
+        key = make_cache_key(lat, lon, date_str)
+        return self._cache.get(key)
+
+    def set(self, lat: float, lon: float, date_str: str, data: list[HourlyAir]) -> None:
+        """Insert or refresh cache entry."""
+        key = make_cache_key(lat, lon, date_str)
+        self._cache[key] = data
+
+    def clear(self) -> None:
+        """Purge all cached entries."""
+        self._cache.clear()
+
+
+_DEFAULT_AIR_CACHE = AirCache()
 
 
 def make_cache_key(lat: float, lon: float, date_str: str) -> tuple[float, float, str]:
@@ -20,19 +43,14 @@ def make_cache_key(lat: float, lon: float, date_str: str) -> tuple[float, float,
     return (round(lat, 2), round(lon, 2), date_str)
 
 
-def get_cached_air(lat: float, lon: float, date_str: str) -> list[HourlyAir] | None:
-    """Retrieve cached hourly air readings if not expired.
-
-    Args:
-        lat: Latitude coordinate.
-        lon: Longitude coordinate.
-        date_str: ISO date string (YYYY-MM-DD).
-
-    Returns:
-        Cached list of HourlyAir, or None if not found or expired.
-    """
-    key = make_cache_key(lat, lon, date_str)
-    return _AIR_CACHE.get(key)
+def get_cached_air(
+    lat: float,
+    lon: float,
+    date_str: str,
+    cache: AirCache | None = None,
+) -> list[HourlyAir] | None:
+    """Retrieve cached hourly air readings if not expired."""
+    return (cache or _DEFAULT_AIR_CACHE).get(lat, lon, date_str)
 
 
 def set_cached_air(
@@ -40,19 +58,12 @@ def set_cached_air(
     lon: float,
     date_str: str,
     data: list[HourlyAir],
+    cache: AirCache | None = None,
 ) -> None:
-    """Store hourly air readings in bounded in-memory cache.
-
-    Args:
-        lat: Latitude coordinate.
-        lon: Longitude coordinate.
-        date_str: ISO date string (YYYY-MM-DD).
-        data: List of HourlyAir records to cache.
-    """
-    key = make_cache_key(lat, lon, date_str)
-    _AIR_CACHE[key] = data
+    """Store hourly air readings in bounded in-memory cache."""
+    (cache or _DEFAULT_AIR_CACHE).set(lat, lon, date_str, data)
 
 
-def clear_air_cache() -> None:
+def clear_air_cache(cache: AirCache | None = None) -> None:
     """Purge all entries from the air quality cache."""
-    _AIR_CACHE.clear()
+    (cache or _DEFAULT_AIR_CACHE).clear()

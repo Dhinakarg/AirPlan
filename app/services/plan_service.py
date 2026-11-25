@@ -60,6 +60,9 @@ def _extract_facts(
     """Compile ground-truth facts dictionary for AI placeholder substitution."""
     top_title = ranked[0].intervention.title if ranked else "Natural ventilation"
     win_start, win_end, mean_pm = _window_params(vent_win)
+    worst_start = worst_win.start_hour if worst_win else 19
+    worst_end = worst_win.end_hour if worst_win else 23
+    worst_pm = worst_win.mean_pm25 if worst_win else 250.0
     return {
         "index_after": 68.5,
         "index_before": 100.0,
@@ -67,6 +70,9 @@ def _extract_facts(
         "window_start": win_start,
         "window_end": win_end,
         "mean_pm25": mean_pm,
+        "worst_start": worst_start,
+        "worst_end": worst_end,
+        "worst_pm25": worst_pm,
         "top_intervention": top_title,
         "cleanest_hour": win_start,
         "stagnation_hours": ", ".join(str(h) for h in inversion.hours[:3]) or "none",

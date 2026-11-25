@@ -1,0 +1,24 @@
+{
+  "findings": [
+    {
+      "source": "biomass_cooking",
+      "status": "suspected",
+      "confidence": "high",
+      "evidence": "Solid biomass fuel without chimney or mechanical exhaust",
+      "fixes": [
+        "Switch to LPG/induction",
+        "Cook near open window with cross-ventilation"
+      ]
+    },
+    {
+      "source": "incense_burning",
+      "status": "suspected",
+      "confidence": "medium",
+      "evidence": "Regular indoor burning of incense sticks or dhoop",
+      "fixes": [
+        "Eliminate indoor burning",
+        "Ventilate immediately after rituals"
+      ]
+    }
+  ]
+}

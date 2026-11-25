@@ -11,25 +11,13 @@ from app.services.community_service import clear_pledges
 from tests.conftest import get_canonical_routine_dicts
 
 
-def test_full_offline_end_to_end_journey(client: TestClient) -> None:
-    """Verify entire user journey works end-to-end without external network access.
+def _verify_health_step(client: TestClient) -> None:
+    res = client.get("/api/v1/health")
+    assert res.status_code == HTTPStatus.OK
+    assert res.json()["status"] == "ok"
 
-    Journey:
-    1. Operational health verification.
-    2. Household plan creation with sample Delhi winter air data.
-    3. Counterfactual routine simulation (comparing baseline vs shifted activity).
-    4. Indoor source analysis from household survey.
-    5. Conversational assistant Q&A with ground-truth facts.
-    6. Collective community action pledge and aggregated impact reporting.
-    """
-    clear_pledges()
 
-    # Step 1: Healthcheck
-    health_res = client.get("/api/v1/health")
-    assert health_res.status_code == HTTPStatus.OK
-    assert health_res.json()["status"] == "ok"
-
-    # Step 2: 24-hour Household Plan
+def _verify_plan_step(client: TestClient) -> None:
     plan_payload = {
         "members": [
             {
@@ -87,14 +75,14 @@ def test_full_offline_end_to_end_journey(client: TestClient) -> None:
     assert plan_data["data_source"] == "sample"
     assert len(plan_data["ranked_interventions"]) > 0
 
-    # Step 3: Counterfactual Routine Simulation
+
+def _verify_simulation_step(client: TestClient) -> tuple[float, float]:
     base_routine = [
         {"start_hour": 0, "end_hour": 8, "activity": "sleep", "mode": "home"},
         {"start_hour": 8, "end_hour": 17, "activity": "light", "mode": "home"},
         {"start_hour": 17, "end_hour": 19, "activity": "exercise", "mode": "outdoor"},
         {"start_hour": 19, "end_hour": 24, "activity": "sleep", "mode": "home"},
     ]
-    # Shift outdoor exercise to indoor rest
     alt_routine = [
         {"start_hour": 0, "end_hour": 8, "activity": "sleep", "mode": "home"},
         {"start_hour": 8, "end_hour": 17, "activity": "light", "mode": "home"},
@@ -115,8 +103,10 @@ def test_full_offline_end_to_end_journey(client: TestClient) -> None:
     assert sim_data["index_before"] == 100.0
     assert sim_data["index_after"] < 100.0
     assert sim_data["dose_saved_ug"] > 0
+    return float(sim_data["index_after"]), float(sim_data["dose_saved_ug"])
 
-    # Step 4: Indoor Source Analysis
+
+def _verify_indoor_step(client: TestClient) -> None:
     home_payload = {
         "cooking_fuel": "lpg",
         "kitchen_exhaust": "none",
@@ -132,12 +122,13 @@ def test_full_offline_end_to_end_journey(client: TestClient) -> None:
     assert "incense_burning" in source_names
     assert "mosquito_coil" in source_names
 
-    # Step 5: Guarded AI Assistant
+
+def _verify_assistant_step(client: TestClient, index_after: float, dose_saved: float) -> None:
     ask_payload = {
         "question": "What is our exposure score and how do we improve it?",
         "facts": {
-            "index_after": sim_data["index_after"],
-            "dose_saved": sim_data["dose_saved_ug"],
+            "index_after": index_after,
+            "dose_saved": dose_saved,
             "window_start": 13,
             "window_end": 15,
         },
@@ -149,7 +140,8 @@ def test_full_offline_end_to_end_journey(client: TestClient) -> None:
     assert "summary" in ask_data
     assert "tips" in ask_data
 
-    # Step 6: Community Action Pledge & Summary
+
+def _verify_community_step(client: TestClient) -> None:
     pledge_payload = {
         "area_code": "DL-05",
         "action": "metro",
@@ -166,6 +158,17 @@ def test_full_offline_end_to_end_journey(client: TestClient) -> None:
     assert summary_data["trips_avoided"] == 5
     assert summary_data["co2_kg_avoided"] > 0
     assert "qualitative" in summary_data["pm25_note"].lower() or len(summary_data["pm25_note"]) > 0
+
+
+def test_full_offline_end_to_end_journey(client: TestClient) -> None:
+    """Verify entire user journey works end-to-end without external network access."""
+    clear_pledges()
+    _verify_health_step(client)
+    _verify_plan_step(client)
+    index_after, dose_saved = _verify_simulation_step(client)
+    _verify_indoor_step(client)
+    _verify_assistant_step(client, index_after, dose_saved)
+    _verify_community_step(client)
 
 
 def _build_demo_plan_payload() -> dict[str, Any]:

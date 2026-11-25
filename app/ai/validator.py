@@ -17,6 +17,9 @@ ALLOWED_PLACEHOLDERS: Final[frozenset[str]] = frozenset(
         "top_intervention",
         "cleanest_hour",
         "stagnation_hours",
+        "worst_start",
+        "worst_end",
+        "worst_pm25",
     }
 )
 

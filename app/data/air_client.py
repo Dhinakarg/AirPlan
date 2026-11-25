@@ -58,7 +58,7 @@ def load_sample_air_data() -> list[HourlyAir]:
     """Load offline sample diurnal smog profile from bundled JSON dataset."""
     try:
         path = Path(__file__).parent / "sample_data.json"
-        with open(path, encoding="utf-8") as f:
+        with path.open(encoding="utf-8") as f:
             data = json.load(f)
         return [
             HourlyAir(
@@ -162,7 +162,14 @@ def _try_fetch_remote(
         return records
     except AirDataError:
         raise
-    except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPError, Exception) as exc:
+    except (
+        httpx.HTTPError,
+        httpx.NetworkError,
+        httpx.TimeoutException,
+        json.JSONDecodeError,
+        KeyError,
+        ValueError,
+    ) as exc:
         logger.warning(
             "Live air fetch failed for (%.2f, %.2f): %s. Falling back to sample data.",
             r_lat,

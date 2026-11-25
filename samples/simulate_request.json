@@ -1,0 +1,61 @@
+{
+  "base_routine": [
+    {
+      "start_hour": 0,
+      "end_hour": 8,
+      "activity": "sleep",
+      "mode": "home"
+    },
+    {
+      "start_hour": 8,
+      "end_hour": 17,
+      "activity": "light",
+      "mode": "home"
+    },
+    {
+      "start_hour": 17,
+      "end_hour": 19,
+      "activity": "exercise",
+      "mode": "outdoor"
+    },
+    {
+      "start_hour": 19,
+      "end_hour": 24,
+      "activity": "sleep",
+      "mode": "home"
+    }
+  ],
+  "alt_routine": [
+    {
+      "start_hour": 0,
+      "end_hour": 8,
+      "activity": "sleep",
+      "mode": "home"
+    },
+    {
+      "start_hour": 8,
+      "end_hour": 17,
+      "activity": "light",
+      "mode": "home"
+    },
+    {
+      "start_hour": 17,
+      "end_hour": 19,
+      "activity": "rest",
+      "mode": "home"
+    },
+    {
+      "start_hour": 19,
+      "end_hour": 24,
+      "activity": "sleep",
+      "mode": "home"
+    }
+  ],
+  "home": {
+    "leakiness": "average",
+    "purifier": false
+  },
+  "age_group": "adult",
+  "latitude": 28.61,
+  "longitude": 77.21
+}

@@ -1,0 +1,8 @@
+{
+  "cooking_fuel": "biomass",
+  "kitchen_exhaust": "none",
+  "incense": true,
+  "mosquito_coil": true,
+  "smokers": true,
+  "sweeping": "dry"
+}

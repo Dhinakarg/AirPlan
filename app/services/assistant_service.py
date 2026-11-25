@@ -4,10 +4,18 @@ import logging
 from typing import Any
 
 from app.ai.fallback import get_fallback_payload
-from app.ai.guards import build_injection_refusal, looks_like_injection, sanitize_user_text
+from app.ai.guards import (
+    build_injection_refusal,
+    looks_like_injection,
+    sanitize_user_text,
+)
 from app.ai.prompts import format_user_prompt
-from app.ai.provider import AssistantProvider, get_assistant_provider
-from app.ai.validator import AssistantPayload, substitute_payload, validate_assistant_output
+from app.ai.provider import AssistantProvider, GenAIAPIError, get_assistant_provider
+from app.ai.validator import (
+    AssistantPayload,
+    substitute_payload,
+    validate_assistant_output,
+)
 from app.engine.models import RedFlag
 from app.engine.safety_rules import detect_red_flags
 from app.errors import AIError
@@ -23,7 +31,7 @@ def _try_generate_and_validate(p: AssistantProvider, prompt: str) -> AssistantPa
         if payload is None:
             logger.info("Provider output failed validation; falling back to template.")
         return payload
-    except (AIError, Exception) as exc:
+    except (AIError, GenAIAPIError, RuntimeError, ValueError, KeyError, TimeoutError) as exc:
         logger.warning("Provider call failed (%s); using fallback template.", exc)
         return None
 

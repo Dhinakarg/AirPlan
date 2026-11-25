@@ -10,9 +10,9 @@ from app.engine.models import (
 from app.engine.ranking import rank_interventions
 
 
-def test_golden_scenario_delhi_family() -> None:
-    """Validate ranking for Delhi family with toddler, asthmatic grandparent, wood cooking."""
-    context = HouseholdContext(
+def _build_delhi_family_context() -> HouseholdContext:
+    """Construct representative high-vulnerability Delhi household context."""
+    return HouseholdContext(
         owns_home=True,
         has_transit_access=True,
         has_car=True,
@@ -23,28 +23,26 @@ def test_golden_scenario_delhi_family() -> None:
         has_unvented_kitchen=True,
         burns_incense_or_coils=True,
     )
-    budget_inr = 500.0
-    ranked = rank_interventions(context, budget_inr)
+
+
+def test_golden_scenario_delhi_family_low_budget() -> None:
+    """Validate ranking for Delhi family under strict ₹500 budget constraint."""
+    context = _build_delhi_family_context()
+    ranked = rank_interventions(context, budget_inr=500.0)
 
     assert len(ranked) >= 3
-    top_3_ids = [r.intervention.id for r in ranked[:3]]
-
-    # High-impact free & affordable measures rank at the very top
+    top_3_ids = {r.intervention.id for r in ranked[:3]}
     assert "shift_exercise_cleanest_hour" in top_3_ids
     assert "no_waste_burning" in top_3_ids
+    assert all(r.intervention.id != "purifier" for r in ranked)
 
-    # Purifier (₹1200/mo) is excluded because it exceeds ₹500 budget
-    purifier_ids = [r.intervention.id for r in ranked if r.intervention.id == "purifier"]
-    assert len(purifier_ids) == 0
 
-    # Even at higher budget (e.g. ₹1500), free timing and wet mopping cost-effectiveness ranks high
-    higher_budget_ranked = rank_interventions(context, budget_inr=1500.0)
-    timing_rank = next(
-        r.rank for r in higher_budget_ranked if r.intervention.id == "shift_exercise_cleanest_hour"
-    )
-    purifier_rank = next(r.rank for r in higher_budget_ranked if r.intervention.id == "purifier")
-    # Timing (free) strictly outranks expensive commercial purifier on cost-benefit
-    assert timing_rank < purifier_rank
+def test_golden_scenario_delhi_family_purifier_relative_rank() -> None:
+    """Free timing and behavioral interventions outrank commercial purifier on cost-benefit."""
+    context = _build_delhi_family_context()
+    ranked = rank_interventions(context, budget_inr=1500.0)
+    ranks = {r.intervention.id: r.rank for r in ranked}
+    assert ranks["shift_exercise_cleanest_hour"] < ranks["purifier"]
 
 
 def test_budget_zero_excludes_all_paid_items() -> None:

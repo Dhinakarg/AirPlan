@@ -1,0 +1,11 @@
+{
+  "question": "When is the safest time to open my windows today?",
+  "facts": {
+    "window_start": 13,
+    "window_end": 15,
+    "worst_start": 19,
+    "worst_end": 23,
+    "index_after": 68.5
+  },
+  "language": "en"
+}

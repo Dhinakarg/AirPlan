@@ -58,7 +58,28 @@ export function renderAssistantScreen(container) {
   });
   const qLbl = el('label', '', t('askQuestion', lang));
   qLbl.htmlFor = qIn.id;
-  form.appendChild(el('div', 'form-group', [qLbl, qIn]));
+
+  const exampleChips = el('div', 'btn-group');
+  exampleChips.style.marginTop = '6px';
+  exampleChips.style.marginBottom = '8px';
+  const examples = [
+    'When is the cleanest hour to ventilate?',
+    'Should I avoid outdoor exercise today?',
+    'Are mosquito coils harmful indoors?',
+  ];
+  examples.forEach((ex) => {
+    const chip = el('button', 'btn btn-secondary', ex);
+    chip.type = 'button';
+    chip.style.fontSize = '0.8rem';
+    chip.style.padding = '4px 8px';
+    chip.addEventListener('click', () => {
+      qIn.value = ex;
+      qIn.focus();
+    });
+    exampleChips.appendChild(chip);
+  });
+
+  form.appendChild(el('div', 'form-group', [qLbl, exampleChips, qIn]));
 
   const askBtn = el('button', 'btn btn-primary', `💬 ${t('askButton', lang)}`);
   askBtn.type = 'submit';

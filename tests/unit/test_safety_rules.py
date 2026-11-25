@@ -1,34 +1,29 @@
 """Unit tests for emergency medical red-flag detection across English and Hindi."""
 
+import pytest
+
 from app.constants import RED_FLAG_OVERRIDE_ACTION
 from app.engine.safety_rules import detect_red_flags
 
 
-def test_detect_red_flags_english_positive_symptoms() -> None:
+@pytest.mark.parametrize(
+    ("query", "expected_symptom"),
+    [
+        ("I am experiencing sharp chest pain and sweating.", "chest_pain"),
+        ("Patient having severe difficulty breathing while resting.", "breathing_difficulty"),
+        ("My mother passed out on the balcony.", "fainting"),
+        ("The toddler has blue lips and pale fingernails.", "cyanosis_blue_lips"),
+        ("He is coughing up blood this morning.", "hemoptysis"),
+    ],
+)
+def test_detect_red_flags_english_positive_symptoms(query: str, expected_symptom: str) -> None:
     """Detects emergency clinical red flags in English with immediate triage action."""
-    res1 = detect_red_flags("I am experiencing sharp chest pain and sweating.")
-    assert res1 is not None
-    assert res1.symptom == "chest_pain"
-    assert res1.urgency == "immediate"
-    assert res1.action == RED_FLAG_OVERRIDE_ACTION
-    assert res1.language == "en"
-
-    res2 = detect_red_flags("Patient having severe difficulty breathing while resting.")
-    assert res2 is not None
-    assert res2.symptom == "breathing_difficulty"
-    assert res2.urgency == "immediate"
-
-    res3 = detect_red_flags("My mother passed out on the balcony.")
-    assert res3 is not None
-    assert res3.symptom == "fainting"
-
-    res4 = detect_red_flags("The toddler has blue lips and pale fingernails.")
-    assert res4 is not None
-    assert res4.symptom == "cyanosis_blue_lips"
-
-    res5 = detect_red_flags("He is coughing up blood this morning.")
-    assert res5 is not None
-    assert res5.symptom == "hemoptysis"
+    res = detect_red_flags(query)
+    assert res is not None
+    assert res.symptom == expected_symptom
+    assert res.urgency == "immediate"
+    assert res.action == RED_FLAG_OVERRIDE_ACTION
+    assert res.language == "en"
 
 
 def test_detect_red_flags_english_negations() -> None:
@@ -40,28 +35,22 @@ def test_detect_red_flags_english_negations() -> None:
     assert detect_red_flags("Zero chest tightness reported.") is None
 
 
-def test_detect_red_flags_hindi_positive_symptoms() -> None:
+@pytest.mark.parametrize(
+    ("query", "expected_symptom"),
+    [
+        ("मुझे सीने में दर्द हो रहा है और घबराहट है।", "chest_pain"),
+        ("मरीज को सांस लेने में तकलीफ हो रही है।", "breathing_difficulty"),
+        ("दादाजी अचानक बेहोश हो गए।", "fainting"),
+        ("बच्चे के होंठ नीले पड़ रहे हैं।", "cyanosis_blue_lips"),
+    ],
+)
+def test_detect_red_flags_hindi_positive_symptoms(query: str, expected_symptom: str) -> None:
     """Detects emergency clinical red flags in Hindi (Devanagari)."""
-    res1 = detect_red_flags("मुझे सीने में दर्द हो रहा है और घबराहट है।")
-    assert res1 is not None
-    assert res1.symptom == "chest_pain"
-    assert res1.action == RED_FLAG_OVERRIDE_ACTION
-    assert res1.language == "hi"
-
-    res2 = detect_red_flags("मरीज को सांस लेने में तकलीफ हो रही है।")
-    assert res2 is not None
-    assert res2.symptom == "breathing_difficulty"
-    assert res2.language == "hi"
-
-    res3 = detect_red_flags("दादाजी अचानक बेहोश हो गए।")
-    assert res3 is not None
-    assert res3.symptom == "fainting"
-    assert res3.language == "hi"
-
-    res4 = detect_red_flags("बच्चे के होंठ नीले पड़ रहे हैं।")
-    assert res4 is not None
-    assert res4.symptom == "cyanosis_blue_lips"
-    assert res4.language == "hi"
+    res = detect_red_flags(query)
+    assert res is not None
+    assert res.symptom == expected_symptom
+    assert res.action == RED_FLAG_OVERRIDE_ACTION
+    assert res.language == "hi"
 
     res5 = detect_red_flags("खांसी में खून आ रहा है।")
     assert res5 is not None

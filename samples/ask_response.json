@@ -1,0 +1,10 @@
+{
+  "summary": "Plan indicates cleanest ventilation window is 13:00 to 15:00.",
+  "tips": [
+    "Open windows between 13:00 and 15:00 when boundary layer heating disperses ground smog.",
+    "Keep windows tightly shut during evening peak hours (19:00-23:00)."
+  ],
+  "answer": "The safest interval for natural ventilation today is from 13:00 to 15:00.",
+  "is_red_flag": false,
+  "red_flag": null
+}

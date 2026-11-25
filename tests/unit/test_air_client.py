@@ -1,6 +1,7 @@
 """Unit tests for Open-Meteo air data client, caching, and offline fallback."""
 
 import json
+from collections.abc import Generator
 
 import httpx
 import pytest
@@ -15,7 +16,7 @@ from app.errors import AirDataError
 
 
 @pytest.fixture(autouse=True)
-def _reset_cache() -> None:
+def _reset_cache() -> Generator[None, None, None]:
     """Clear in-memory TTLCache before and after each test."""
     clear_air_cache()
     yield

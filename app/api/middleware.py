@@ -7,12 +7,47 @@ from collections import defaultdict
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+from starlette.types import ASGIApp
 
 from app.config import get_settings
 from app.constants import MAX_REQUEST_SIZE_BYTES, RATE_LIMIT_WINDOW_SECONDS
 
+
 # In-memory sliding-window request timestamps keyed by client IP
-_IP_REQUEST_TIMESTAMPS: dict[str, list[float]] = defaultdict(list)
+class RateLimiter:
+    """Sliding-window IP rate limiter with injectable state."""
+
+    def __init__(self, window_seconds: float = RATE_LIMIT_WINDOW_SECONDS) -> None:
+        """Initialize RateLimiter with sliding-window duration."""
+        self.window_seconds = window_seconds
+        self.timestamps: dict[str, list[float]] = defaultdict(list)
+
+    def is_allowed(self, client_ip: str, limit: int) -> bool:
+        """Check whether client request is within sliding-window quota."""
+        now = time.monotonic()
+        recent = [t for t in self.timestamps[client_ip] if now - t < self.window_seconds]
+        if len(recent) >= limit:
+            self.timestamps[client_ip] = recent
+            return False
+        recent.append(now)
+        self.timestamps[client_ip] = recent
+        return True
+
+    def clear(self) -> None:
+        """Purge all recorded client IP timestamps."""
+        self.timestamps.clear()
+
+
+_DEFAULT_RATE_LIMITER = RateLimiter()
+
+__all__ = [
+    "CSP_HEADER_VALUE",
+    "MAX_REQUEST_SIZE_BYTES",
+    "RateLimiter",
+    "SecurityMiddleware",
+    "clear_rate_limit_cache",
+    "reset_rate_limiter",
+]
 
 CSP_HEADER_VALUE = (
     "default-src 'self'; script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com; "
@@ -24,7 +59,7 @@ CSP_HEADER_VALUE = (
 
 def clear_rate_limit_cache() -> None:
     """Clear in-memory IP timestamp records (useful for test isolation)."""
-    _IP_REQUEST_TIMESTAMPS.clear()
+    _DEFAULT_RATE_LIMITER.clear()
 
 
 # Backward-compatible alias for test harness
@@ -33,6 +68,15 @@ reset_rate_limiter = clear_rate_limit_cache
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     """Unified security middleware enforcing headers, rate limiting, and request limits."""
+
+    def __init__(
+        self,
+        app: ASGIApp,
+        rate_limiter: RateLimiter | None = None,
+    ) -> None:
+        """Initialize SecurityMiddleware with optional injected RateLimiter."""
+        super().__init__(app)
+        self.rate_limiter = rate_limiter or _DEFAULT_RATE_LIMITER
 
     @staticmethod
     def _extract_correlation_id(request: Request) -> str:
@@ -68,17 +112,12 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 return forwarded.split(",")[0].strip()
         return request.client.host if request.client else "127.0.0.1"
 
-    @classmethod
-    def _check_rate_limit(cls, request: Request, corr_id: str) -> Response | None:
+    def _check_rate_limit(self, request: Request, corr_id: str) -> Response | None:
         """Enforce per-IP sliding-window request throttling."""
-        client_ip = cls._resolve_client_ip(request)
-        now = time.monotonic()
+        client_ip = self._resolve_client_ip(request)
         limit = get_settings().rate_limit_per_minute
 
-        timestamps = [
-            t for t in _IP_REQUEST_TIMESTAMPS[client_ip] if now - t < RATE_LIMIT_WINDOW_SECONDS
-        ]
-        if len(timestamps) >= limit:
+        if not self.rate_limiter.is_allowed(client_ip, limit):
             return JSONResponse(
                 status_code=429,
                 content={
@@ -87,9 +126,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 },
                 headers={"Retry-After": "60", "X-Correlation-ID": corr_id},
             )
-
-        timestamps.append(now)
-        _IP_REQUEST_TIMESTAMPS[client_ip] = timestamps
         return None
 
     @staticmethod

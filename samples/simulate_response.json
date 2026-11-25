@@ -1,0 +1,18 @@
+{
+  "index_before": 100.0,
+  "index_after": 68.5,
+  "dose_saved_ug": 145.2,
+  "per_block_delta": [
+    {
+      "start_hour": 17,
+      "end_hour": 19,
+      "base_dose_ug": 220.0,
+      "alt_dose_ug": 74.8,
+      "delta_ug": 145.2
+    }
+  ],
+  "provenance": {
+    "text": "Comparative microenvironment diurnal integration",
+    "confidence": "high"
+  }
+}

@@ -11,6 +11,31 @@ from app.errors import AIError
 
 logger = logging.getLogger(__name__)
 
+
+class GenAIAPIError(Exception):
+    """Exception class representing Google GenAI SDK errors."""
+
+    def __init__(
+        self,
+        code: int = 500,
+        response_json: object = None,
+        *args: object,
+        **kwargs: object,
+    ) -> None:
+        """Initialize error with status code and response JSON."""
+        super().__init__(f"APIError {code}: {response_json}")
+        self.code = code
+        self.response_json = response_json
+
+
+__all__ = [
+    "AssistantProvider",
+    "GeminiProvider",
+    "GenAIAPIError",
+    "TemplateProvider",
+    "get_assistant_provider",
+]
+
 GEMINI_API_URL: Final[str] = (
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 )
@@ -84,7 +109,13 @@ class GeminiProvider:
             resp = http.post(GEMINI_API_URL, params=params, json=payload)
             resp.raise_for_status()
             return self._extract_candidate_text(resp.json())
-        except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError) as exc:
+        except (
+            httpx.TimeoutException,
+            httpx.NetworkError,
+            httpx.HTTPStatusError,
+            httpx.HTTPError,
+            GenAIAPIError,
+        ) as exc:
             raise AIError(f"Gemini API generation failed: {exc}") from exc
         finally:
             if self._client is None:

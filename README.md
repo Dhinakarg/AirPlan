@@ -59,6 +59,23 @@ Open **`http://127.0.0.1:8000`** in your browser.
 
 *(Optional)* Add a `GEMINI_API_KEY` in `.env` to enable live Google Gemini generation.
 
+### Try it in 60 seconds
+
+Run one command to test the clean-air planner engine immediately:
+
+```bash
+# Send a sample household plan request using generated samples
+curl -s -X POST http://127.0.0.1:8000/api/v1/plan \
+  -H "Content-Type: application/json" \
+  -d @samples/plan_request.json
+```
+
+Or regenerate canonical sample inputs and outputs anytime:
+
+```bash
+make samples
+```
+
 ---
 
 ## Architecture: Engine vs. AI Split
@@ -85,12 +102,12 @@ make check
 
 | Quality Gate | Tool | Status & Evidence |
 | :--- | :--- | :--- |
-| **Python Unit & Integration** | `pytest` | **193 passed** in ~4s with **96.71% coverage** (exceeds 92% target) |
+| **Python Unit & Integration** | `pytest` | **203 passed** in ~7s with **96.82% coverage** (exceeds 92% target) |
 | **Frontend Tests** | `node --test` | **27 passed**, 0 failed (DOM builder, pure helpers, i18n parity, state store, enum leaks) |
-| **Static Type Checking** | `mypy --strict` | **Clean** across all 35 source files (0 errors) |
+| **Static Type Checking** | `mypy --strict` | **Clean** across all 59 source files (0 errors) |
 | **Linter & Formatting** | `ruff` | **All checks passed** |
 | **Security Auditing** | `bandit` & `pip-audit` | **0 issues identified**; no known dependency vulnerabilities |
-| **Code Complexity** | `radon cc` & `radon mi` | **Grade A** (avg complexity 2.38); 100% Grade A maintainability |
+| **Code Complexity** | `radon cc` & `radon mi` | **Grade A** (avg complexity 1.82); 100% Grade A maintainability across app and tests |
 | **Modular File Size Budgets** | Custom check | **100% compliant** (all 16 JS modules $\le 150$ lines, all 10 CSS $\le 200$ lines) |
 
 ---

@@ -58,7 +58,7 @@ graph TD
    - Imports nothing from `app/engine` or `app/ai`.
 
 5. **AI Layer (`app/ai`)**:
-   - Provides guarded LLM integration (Gemini 2.5 Flash) and instant deterministic template fallbacks.
+   - Provides guarded LLM integration (Gemini 1.5 Flash) and instant deterministic template fallbacks.
    - Allowed to import data contracts only from `app/engine/models.py`.
    - Never calls database or atmospheric clients directly.
 
@@ -79,7 +79,7 @@ sequenceDiagram
     participant AI as app/ai
     
     User->>API: POST /api/v1/plan (members, routine, home, coords, budget)
-    Note over API: SecurityMiddleware checks rate limit (60/min), body size (<64KB), CSP
+    Note over API: SecurityMiddleware checks rate limit (60/min), body size (<100KB), CSP
     API->>API: Validate PlanRequest schema (extra="forbid", bounds checked)
     API->>Svc: create_clean_air_plan(...)
     
@@ -152,7 +152,7 @@ The system prompt explicitly commands the model to return a structured JSON obje
 ### 3. Server-Side AST & Regex Verification
 Before any text is presented to the user, `app/ai/validator.py` applies structural validation rules:
 - **Zero Unapproved Numbers**: The validator scans all string values in the JSON output. Any bare numeric digit outside an allowed tag format (e.g. `{{index_after}}`) causes immediate validation failure.
-- **Allowed Placeholder Whitelist**: Only registered tokens (`{{index_after}}`, `{{dose_saved}}`, `{{window_start}}`, `{{window_end}}`, `{{intervention_1}}`, `{{intervention_2}}`) are permitted.
+- **Allowed Placeholder Whitelist**: Only registered tokens (`{{index_after}}`, `{{index_before}}`, `{{dose_saved}}`, `{{window_start}}`, `{{window_end}}`, `{{mean_pm25}}`, `{{worst_start}}`, `{{worst_end}}`, `{{worst_pm25}}`, `{{top_intervention}}`, `{{cleanest_hour}}`, `{{stagnation_hours}}`) are permitted.
 - **Key Whitelist**: Only `"summary"`, `"tips"`, and `"answer"` keys are allowed (`extra="forbid"`).
 
 ### 4. Deterministic Substitution Pipeline
