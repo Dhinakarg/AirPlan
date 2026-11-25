@@ -1,10 +1,7 @@
 """Indoor pollution source diagnostics and emission rate estimation."""
 
-from typing import Literal
-
 from app.constants import (
     INDOOR_PM25_ELEVATED_THRESHOLD_UG_M3,
-    LIKELIHOOD_AMBIENT_INFILTRATION,
     LIKELIHOOD_BIOMASS_DEFAULT,
     LIKELIHOOD_BIOMASS_INTERNAL_EXHAUST,
     LIKELIHOOD_BIOMASS_NO_EXHAUST,
@@ -21,8 +18,18 @@ from app.constants import (
 )
 from app.engine.enums import CookingFuel, KitchenExhaust, SweepingType
 from app.engine.models import HomeSurvey, SourceFinding
-
-SourceStatus = Literal["suspected", "measured"]
+from app.engine.source_findings import (
+    SourceStatus,
+)
+from app.engine.source_findings import (
+    ambient_infiltration_finding as _ambient_infiltration_finding,
+)
+from app.engine.source_findings import (
+    biomass_finding as _biomass_finding,
+)
+from app.engine.source_findings import (
+    lpg_finding as _lpg_finding,
+)
 
 BIOMASS_EXHAUST_PENALTIES: dict[KitchenExhaust, float] = {
     KitchenExhaust.NONE: LIKELIHOOD_BIOMASS_NO_EXHAUST,
@@ -35,35 +42,6 @@ LPG_EXHAUST_PENALTIES: dict[KitchenExhaust, float] = {
     KitchenExhaust.INTERNAL: LIKELIHOOD_LPG_INTERNAL_EXHAUST,
     KitchenExhaust.VENTED: LIKELIHOOD_LPG_VENTED_EXHAUST,
 }
-
-
-def _biomass_finding(fuel: str, exh: str, like: float, status: SourceStatus) -> SourceFinding:
-    """Create finding for solid biomass / wood combustion."""
-    return SourceFinding(
-        source="biomass_cooking",
-        likelihood=like,
-        evidence=f"Combustion of {fuel} with {exh} exhaust",
-        status=status,
-        fixes=[
-            "Switch to induction or LPG cooktop",
-            "Install exterior-vented exhaust chimney",
-            "Isolate kitchen enclosure from living rooms",
-        ],
-    )
-
-
-def _lpg_finding(fuel: str, exh: str, like: float, status: SourceStatus) -> SourceFinding:
-    """Create finding for unvented or poorly vented gas cooking."""
-    return SourceFinding(
-        source="unvented_lpg_cooking",
-        likelihood=like,
-        evidence=f"Cooking with {fuel} and {exh} exhaust",
-        status=status,
-        fixes=[
-            "Install ducted exterior kitchen exhaust",
-            "Maintain continuous natural draft during stove operation",
-        ],
-    )
 
 
 def _eval_cooking(survey: HomeSurvey, status: SourceStatus) -> SourceFinding:
@@ -167,20 +145,6 @@ def _eval_cleaning_and_pets(survey: HomeSurvey, status: SourceStatus) -> list[So
     """Evaluate resuspension of dust through sweeping and pet presence."""
     helpers = (_eval_sweeping, _eval_pets)
     return [finding for h in helpers if (finding := h(survey, status)) is not None]
-
-
-def _ambient_infiltration_finding(reading: float) -> SourceFinding:
-    """Build fallback finding when high reading exists with no identified domestic sources."""
-    return SourceFinding(
-        source="ambient_infiltration",
-        likelihood=LIKELIHOOD_AMBIENT_INFILTRATION,
-        evidence=f"Indoor PM2.5 ({reading} ug/m3) exceeds threshold",
-        status="measured",
-        fixes=[
-            "Seal leaky door thresholds and window gaps",
-            "Deploy HEPA room air purifier",
-        ],
-    )
 
 
 def _is_high_reading(survey: HomeSurvey) -> bool:

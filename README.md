@@ -102,7 +102,7 @@ make check
 
 | Quality Gate | Tool | Status & Evidence |
 | :--- | :--- | :--- |
-| **Python Unit & Integration** | `pytest` | **203 passed** in ~7s with **96.82% coverage** (exceeds 92% target) |
+| **Python Unit & Integration** | `pytest` | **203 passed** in ~4s with **96.89% coverage** (exceeds 92% target) |
 | **Frontend Tests** | `node --test` | **27 passed**, 0 failed (DOM builder, pure helpers, i18n parity, state store, enum leaks) |
 | **Static Type Checking** | `mypy --strict` | **Clean** across all 59 source files (0 errors) |
 | **Linter & Formatting** | `ruff` | **All checks passed** |

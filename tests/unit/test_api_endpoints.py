@@ -264,9 +264,10 @@ def test_plan_endpoint_includes_worst_window_and_facts(
     client: TestClient,
     valid_plan_payload: dict[str, Any],
 ) -> None:
-    """Verify plan endpoint provides worst_window and facts with worst_* fields."""
+    """Verify plan endpoint provides worst_window and computed AI guidance."""
     response = client.post("/api/v1/plan", json=valid_plan_payload)
     data = response.json()
     assert response.status_code == HTTPStatus.OK
     assert "worst_window" in data
     assert {"summary", "tips", "answer"}.issubset(data.get("ai_guidance", {}))
+    assert "68.5" not in data["ai_guidance"]["summary"]

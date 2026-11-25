@@ -51,11 +51,26 @@ def _window_params(vent_win: Window | None) -> tuple[int, int, float]:
     return 13, 15, 75.0
 
 
+def _compute_dose_metrics(
+    members_exp: dict[str, DayExposure],
+    ranked: list[RankedIntervention],
+) -> tuple[float, float, float]:
+    """Compute baseline index, post-intervention index, and dose saved."""
+    n_members = len(members_exp)
+    idx_before = (
+        round(sum(e.index for e in members_exp.values()) / n_members, 1) if n_members else 100.0
+    )
+    mean_dose = sum(e.total_dose_ug for e in members_exp.values()) / n_members if n_members else 0.0
+    top_impact = ranked[0].intervention.impact if ranked else 0.15
+    return idx_before, round(idx_before * (1.0 - top_impact), 1), round(mean_dose * top_impact, 1)
+
+
 def _extract_facts(
     vent_win: Window | None,
     worst_win: Window | None,
     inversion: InversionResult,
     ranked: list[RankedIntervention],
+    members_exp: dict[str, DayExposure],
 ) -> dict[str, Any]:
     """Compile ground-truth facts dictionary for AI placeholder substitution."""
     top_title = ranked[0].intervention.title if ranked else "Natural ventilation"
@@ -63,10 +78,11 @@ def _extract_facts(
     worst_start = worst_win.start_hour if worst_win else 19
     worst_end = worst_win.end_hour if worst_win else 23
     worst_pm = worst_win.mean_pm25 if worst_win else 250.0
+    idx_before, idx_after, dose_saved = _compute_dose_metrics(members_exp, ranked)
     return {
-        "index_after": 68.5,
-        "index_before": 100.0,
-        "dose_saved": 145.0,
+        "index_after": idx_after,
+        "index_before": idx_before,
+        "dose_saved": dose_saved,
         "window_start": win_start,
         "window_end": win_end,
         "mean_pm25": mean_pm,
@@ -99,8 +115,7 @@ def _resolve_context(
 
 
 def _build_plan(
-    members: list[MemberPlanInput],
-    home: HomeProfile,
+    members_exp: dict[str, DayExposure],
     air: list[HourlyAir],
     *,
     vent_win: Window | None,
@@ -111,7 +126,7 @@ def _build_plan(
 ) -> PlanResponse:
     """Assemble final validated PlanResponse object."""
     return PlanResponse(
-        members_exposure=_calc_members_exposure(members, air, home),
+        members_exposure=members_exp,
         ventilation_window=vent_win,
         worst_window=worst_win,
         inversion=inversion,
@@ -146,14 +161,15 @@ def create_clean_air_plan(
 ) -> PlanResponse:
     """Orchestrate diurnal air fetching, exposure calculation, and AI advice."""
     air = fetch_hourly_air(round(latitude, 2), round(longitude, 2), date)
+    members_exp = _calc_members_exposure(members, air, home)
     vw, ww, inv = _analyze_meteorology(air)
     rk = rank_interventions(_resolve_context(context, members), budget_inr)
     g = generate_clean_air_advice(
         "Summarize today's clean air plan and actionable tips.",
-        _extract_facts(vw, ww, inv, rk),
+        _extract_facts(vw, ww, inv, rk, members_exp),
         lang=language,
         provider=provider,
     )
     return _build_plan(
-        members, home, air, vent_win=vw, worst_win=ww, inversion=inv, ranked=rk, guidance=g
+        members_exp, air, vent_win=vw, worst_win=ww, inversion=inv, ranked=rk, guidance=g
     )
