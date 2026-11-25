@@ -3,121 +3,93 @@
 > **Plan your family's day around the smog.**
 
 [![CI](https://github.com/Dhinakarg/AirPlan/actions/workflows/ci.yml/badge.svg)](https://github.com/Dhinakarg/AirPlan/actions)
-![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
-![Coverage](https://img.shields.io/badge/Coverage-96.71%25-brightgreen)
-![Accessibility](https://img.shields.io/badge/WCAG%202.1-AA-green)
-![Frontend](https://img.shields.io/badge/Frontend-Vanilla%20ES%20Modules-yellow)
-![License](https://img.shields.io/badge/License-MIT-teal)
 
-AirPlan is an offline-first clean-air planner built for households in the Indo-Gangetic Plain and urban Global South navigating hazardous winter smog ($PM_{2.5} > 250\text{--}600\,\mu\text{g/m}^3$). It calculates personalized hour-by-hour particulate exposure, discovers clean ventilation windows, ranks low-cost interventions with transparent receipts, and provides safe, grounded AI assistance.
+AirPlan is a clean-air household planner with zero setup: falls back to bundled sample data and template answers when external APIs or keys are unavailable.
 
 ---
 
-## Visual Showcase
+## Chosen Vertical and Persona
 
-AirPlan features a clean, responsive layout with a 3-step progress flow (Family & Home → Day Routine → Clean-Air Plan), a live household summary sidebar on desktop, and zero horizontal overflow on mobile:
+* **Vertical**: Urban Environmental Public Health & Household Air Quality Exposure Mitigation (Northern Indian winter smog, $PM_{2.5} > 250\text{--}600\,\mu\text{g/m}^3$).
+* **Primary Persona**: Multi-generational urban households (parents, school-going children, elderly relatives, or members with asthma/cardiorespiratory sensitivities) managing daily routines on a tight monthly budget (e.g., ₹500–₹1,500/month).
 
-| Desktop Two-Column View (Light Theme) | Desktop Two-Column View (Dark Theme) |
+---
+
+## The Problem
+
+During severe winter thermal inversions, ambient $PM_{2.5}$ fluctuates dramatically across the 24-hour diurnal cycle while indoor combustion sources (biomass cooking, incense/agarbatti, mosquito coils) and unsealed building envelopes compound personal inhaled dose. Generic AQI numbers tell families *how bad* the air is outside, but fail to answer practical daily questions: *When is it safe to open windows? Which commute mode lowers inhaled exposure within budget? Which routine change cuts the most particulate dose?*
+
+---
+
+## Approach and Logic
+
+AirPlan separates **deterministic physical exposure modeling** from **guarded generative language synthesis** using a numeric-hallucination guard:
+
+```mermaid
+flowchart LR
+    UI["Vanilla ES Modules UI<br/>(19 JS modules, 12 CSS files)"] --> API["FastAPI + SecurityMiddleware"]
+    API --> Data["Open-Meteo Client + AirCache<br/>(falls back to realistic sample data)"]
+    API --> Engine["Pure Python Physics Engine<br/>(Exposure, Ventilation, Commute, Ranking)"]
+    Engine --> Facts["Verified Ground-Truth Metrics"]
+    Facts --> Guard["Numeric-Hallucination Guard<br/>({{placeholder}} AST/Regex Validator)"]
+    AI["Google Gemini (or Template Fallback)"] --> Guard
+    Guard --> Response["Validated Plan & Guidance"]
+```
+
+* **Pure Python Engine (`app/engine/`)**: Calculates hour-by-hour inhaled dose, relative Exposure Index, ventilation windows, thermal inversion trapping, commute mode comparisons, and budget-constrained intervention rankings with zero I/O or randomness.
+* **Guarded AI Layer (`app/ai/`)**: Google Gemini formats plain-language guidance using whitelisted `{{placeholder}}` tags only. The server rejects any naked digits, URLs, markup, or unknown placeholders, substituting engine-computed values server-side.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/DECISIONS.md](docs/DECISIONS.md) for detailed boundaries and Architecture Decision Records.
+
+---
+
+## How the Solution Works
+
+AirPlan organizes household planning into a 3-step core flow plus 3 focused supporting tools:
+
+1. **Step 1 — Family & Home**: Configure household members (age groups, asthma/health sensitivities), building draughtiness, air purifier status, preset city, and monthly clean-air budget.
+2. **Step 2 — Day Ledger**: Map each member's 24-hour routine blocks (sleep, cook, commute/mode, exercise, rest) or test routine shifts side-by-side.
+3. **Step 3 — Clean-Air Plan**: View the before/after Exposure Index, cleanest ventilation window, worst outdoor window, top 3 budget-ranked actions with impact receipts, a 6-mode commute comparison table, 24-hour timeline chart/table, Air Scenario selector (Severe / Moderate / Cleaner demo days), and a Print Plan / local browser save workflow.
+4. **Home Detective**: Scores indoor emission sources (cooking fuel, kitchen exhaust, incense, mosquito coils, smokers, pets, sweeping method) and optional indoor sensor readings.
+5. **Neighbourhood**: Aggregates privacy-safe, area-code collective clean-air pledges (no PII) into avoided trips, passenger-km, and tailpipe $\text{CO}_2$.
+6. **Ask AirPlan**: Bilingual (English/Hindi) Q&A assistant with example prompt chips and deterministic clinical red-flag screening before any AI call.
+
+| Desktop View (Light Theme) | Desktop View (Dark Theme) |
 | :---: | :---: |
 | ![Desktop Light View](docs/screenshots/family_1280_light.png) | ![Desktop Dark View](docs/screenshots/family_1280_dark.png) |
 
-| Mobile Responsive View (360px Light) | Mobile Responsive View (360px Dark) |
-| :---: | :---: |
-| ![Mobile Light View](docs/screenshots/family_360_light.png) | ![Mobile Dark View](docs/screenshots/family_360_dark.png) |
-
 ---
 
-## Key Features
+## Try It in 60 Seconds
 
-1. **3-Step Guided Planning**: Quickly configure your household (age groups, asthma/health needs, draughtiness), map a 24-hour daily routine, and generate an actionable clean-air plan.
-2. **Personalized Exposure Index**: Compares before vs. after inhaled particulate doses against an unmitigated baseline of 100.
-3. **Smart Ventilation & Inversion Timing**: Pinpoints the cleanest hours to open windows and detects nocturnal thermal inversions that trap pollution at ground level.
-4. **Ranked Low-Cost Actions**: Prioritizes affordable DIY interventions (like door draught-proofing, DIY Corsi-Rosenthal boxes, wet mopping) within your exact monthly budget (e.g., ₹500/month).
-5. **"Ask AirPlan" AI Co-Pilot**: Powered by Google Gemini with strict guardrails—grounded in household facts, safe from medical hallucinations, with a deterministic offline fallback.
-6. **Accessible & Bilingual**: Full English and Hindi (हिन्दी) support, high-contrast mode, plain language toggle, and WCAG 2.1 AA keyboard/screen-reader compliance.
-
----
-
-## Quick Start (Zero Setup & 100% Offline)
-
-AirPlan runs out of the box using bundled real-world Delhi winter smog datasets:
+Zero setup: falls back to bundled sample data and template answers when no `GEMINI_API_KEY` or internet connection is present.
 
 ```bash
-# 1. Clone repository
 git clone https://github.com/Dhinakarg/AirPlan.git && cd AirPlan
-
-# 2. Set up virtual environment & install dependencies
 python -m venv .venv
-# On Windows: .venv\Scripts\activate | On macOS/Linux: source .venv/bin/activate
+# Windows: .venv\Scripts\activate | macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-
-# 3. Start local server
 uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open **`http://127.0.0.1:8000`** in your browser.
-
-*(Optional)* Add a `GEMINI_API_KEY` in `.env` to enable live Google Gemini generation.
-
-### Try it in 60 seconds
-
-Run one command to test the clean-air planner engine immediately:
+Open **`http://127.0.0.1:8000`** in your browser, or test the API directly using the generated fixtures:
 
 ```bash
-# Send a sample household plan request using generated samples
 curl -s -X POST http://127.0.0.1:8000/api/v1/plan \
   -H "Content-Type: application/json" \
   -d @samples/plan_request.json
 ```
 
-Or regenerate canonical sample inputs and outputs anytime:
+Regenerate all canonical fixtures in `samples/` anytime with:
 
 ```bash
 make samples
 ```
 
----
-
-## Architecture: Engine vs. AI Split
-
-AirPlan enforces a strict division between deterministic physical modeling and generative language synthesis:
-
-* **Pure Python Engine (`app/engine/`)**: Calculates all physical exposure doses, ventilation windows, and cost-benefit rankings deterministically with zero I/O and zero LLM hallucination risk.
-* **Guarded AI Layer (`app/ai/`)**: Google Gemini formats narrative guidance into template-locked placeholders (`{{index_after}}`, `{{window_start}}`). Numbers are verified server-side and substituted by the Python engine.
-* **Vanilla ES Modules Frontend (`static/`)**: Built with native HTML5/CSS3 and modular ES scripts ($\le 200$ lines each, zero `innerHTML`, CSP-compliant).
-
-> For detailed component boundaries and sequence flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
-
----
-
-## Quality & Verification (`make check`)
-
-Run the full automated test and quality suite:
-
-```bash
-make check
-```
-
-### Verified Test Metrics
-
-| Quality Gate | Tool | Status & Evidence |
-| :--- | :--- | :--- |
-| **Python Unit & Integration** | `pytest` | **207 passed** in ~5s with **96.93% coverage** (exceeds 92% target) |
-| **Frontend Tests** | `node --test` | **27 passed**, 0 failed (DOM builder, pure helpers, i18n parity, state store, enum leaks) |
-| **Static Type Checking** | `mypy --strict` | **Clean** across all 59 source files (0 errors) |
-| **Linter & Formatting** | `ruff` | **All checks passed** |
-| **Security Auditing** | `bandit` & `pip-audit` | **0 issues identified**; no known dependency vulnerabilities |
-| **Code Complexity** | `radon cc` & `radon mi` | **Grade A** (avg complexity 1.82); 100% Grade A maintainability across app and tests |
-| **Modular File Size Budgets** | Custom check | **100% compliant** (all 16 JS modules $\le 150$ lines, all 10 CSS $\le 200$ lines) |
-
----
-
-## Example API Usage
-
 <details>
-<summary><strong>Click to view sample <code>POST /api/v1/plan</code> payload &amp; response</strong></summary>
+<summary><strong>Sample <code>POST /api/v1/plan</code> Request &amp; Response (from <code>samples/</code>)</strong></summary>
 
-### Request
+### Request (`samples/plan_request.json`)
 ```json
 {
   "members": [
@@ -129,7 +101,7 @@ make check
         {"start_hour": 0, "end_hour": 7, "activity": "sleep", "mode": "home"},
         {"start_hour": 7, "end_hour": 14, "activity": "light", "mode": "home"},
         {"start_hour": 14, "end_hour": 16, "activity": "exercise", "mode": "outdoor"},
-        {"start_hour": 16, "end_hour": 24, "activity": "rest", "mode": "home"}
+        {"start_hour": 16, "end_hour": 24, "activity": "sleep", "mode": "home"}
       ]
     }
   ],
@@ -141,15 +113,24 @@ make check
 }
 ```
 
-### Response (Excerpt)
+### Response (`samples/plan_response.json`)
 ```json
 {
   "members_exposure": {
-    "Aarav": {"total_dose_ug": 1184.22, "index": 61.6}
+    "Aarav": {"total_dose_ug": 1184.22, "index": 61.6},
+    "Priya": {"total_dose_ug": 1420.5, "index": 73.8}
   },
   "ventilation_window": {
-    "start_hour": 13, "end_hour": 15, "mean_pm25": 77.5,
+    "start_hour": 13,
+    "end_hour": 15,
+    "mean_pm25": 77.5,
     "reason": "Optimal low-PM2.5 interval for natural ventilation"
+  },
+  "worst_window": {
+    "start_hour": 19,
+    "end_hour": 23,
+    "mean_pm25": 285.0,
+    "reason": "Peak nocturnal smog stagnation and inversion"
   },
   "ranked_interventions": [
     {
@@ -162,17 +143,63 @@ make check
   ],
   "ai_guidance": {
     "summary": "By shifting routines and sealing leaks, Aarav reduces inhaled dose by 38.4%."
-  }
+  },
+  "data_source": "sample"
 }
 ```
 </details>
 
 ---
 
-## Security & Accessibility Summary
+## Assumptions and Limitations
 
-* **Security**: Strict Content Security Policy (`default-src 'self'`), zero `innerHTML` rendering, 60 req/min rate limiting, 100 KB payload body ceiling, and coordinate rounding to $\approx 1.1\,\text{km}$ for privacy.
-* **Accessibility (WCAG 2.1 AA)**: Roving focus dialogs, escape-key handlers, screen reader announcements (`aria-live`), multi-attribute AQI indicators (color + symbol + pattern), and full keyboard navigation.
+| Domain | Modeling Assumption | Confidence | Limitation |
+| :--- | :--- | :--- | :--- |
+| **Indoor Box Model** | Steady-state infiltration multipliers by building leakiness (`0.35`–`0.85`) and purifier factor (`0.30`) | Medium | Does not model room-by-room airflow CFD or transient door openings |
+| **Commute Modes** | Fixed urban microenvironment attenuation factors (`0.6`–`1.3`), typical speeds, and $\text{CO}_2$ factors | Low | Actual exposure varies by corridor traffic, AC recirculation, and mask seal |
+| **Ventilation & Inversion** | Opens windows when hourly $PM_{2.5} \le 100\,\mu\text{g/m}^3$; flags inversion when BLH $< 300\,\text{m}$ or wind $< 6\,\text{km/h}$ | Medium | Uses realistic sample data when Open-Meteo is unreachable |
+| **Indoor Sources** | Rule-based emission likelihoods from survey inputs and indoor $PM_{2.5} > 60\,\mu\text{g/m}^3$ threshold | Low–Medium | Cannot replace calibrated gravimetric or multi-pollutant sensor arrays |
+
+For complete equations, physical units, and references, see [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md).
+
+---
+
+## Testing
+
+Run the full automated verification suite with `make check`:
+
+| Quality Gate | Tool | Verified Result |
+| :--- | :--- | :--- |
+| **Python Unit & Integration** | `pytest --cov=app` | **207 passed**, **96.93% coverage** (exceeds 92% target) |
+| **Frontend Tests** | `node --test tests/js/*.test.js` | **27 passed**, 0 failed |
+| **Static Type Checking** | `mypy --strict app tests` | **0 errors** across **65 source files** |
+| **Linter & Formatting** | `ruff` | **0 errors**, 0 `noqa` / `type: ignore` suppressions |
+| **Security Auditing** | `bandit` & `pip-audit` | **0 issues identified**; 0 known CVEs |
+| **Code Complexity** | `radon cc` & `radon mi` | **0 Grade C+ blocks**; **100% Grade A maintainability** |
+| **Modular Size Budgets** | `make jslines` | All `app/**/*.py` $\le 200$ lines, all **12 CSS files** $\le 200$ lines, all **19 JS modules** $\le 150$ lines |
+
+See [CODE_QUALITY.md](CODE_QUALITY.md) and [docs/EVALUATION.md](docs/EVALUATION.md) for detailed evidence.
+
+---
+
+## Security
+
+* Strict Content Security Policy (`default-src 'self'`), zero `innerHTML` rendering, `X-Content-Type-Options: nosniff`, COOP/CORP headers, and `Cache-Control: no-store` on API responses.
+* Dependency-injected sliding-window rate limiter (60 req/min per IP, untrusted `X-Forwarded-For` ignored by default), 100 KB request payload limit, and Pydantic `extra="forbid"` schemas.
+* PII protection: coordinates rounded to 2 decimal places ($\approx 1.1\,\text{km}$), coarse area codes for community pledges, and local-only `localStorage` persistence with a "Clear saved data" control.
+* Bilingual (EN/HI) deterministic clinical red-flag screening intercepts acute symptoms before any AI call.
+
+See [SECURITY.md](SECURITY.md) for the full threat model and verification matrix.
+
+---
+
+## Accessibility
+
+AirPlan is **built to WCAG 2.1 AA, audited with Lighthouse** (100% Accessibility score, 0 violations):
+
+* Full English and Hindi (`en` / `hi`) UI parity, plain-language toggle, and screen-reader `aria-live` announcements.
+* Light, Dark (`prefers-color-scheme: dark`), High-Contrast ($\ge 7:1$ text), and Windows `forced-colors: active` themes.
+* Keyboard-first navigation, skip link, $\ge 44\,\text{px}$ interactive targets, $\ge 14\,\text{px}$ body typography, multi-attribute AQI indicators (color + icon + text pattern), and print stylesheet (`print.css`).
 
 ---
 
@@ -180,14 +207,4 @@ make check
 
 > [!CAUTION]
 > **AirPlan is an informational exposure planning and environmental decision-support tool. It is not a medical device, diagnostic system, or clinical treatment platform.**  
-> If anyone in your household experiences severe chest tightness, shortness of breath, gasping, or bluish lips/face, immediately discontinue application use and seek emergency medical care.
-
----
-
-## Documentation Links
-
-* [System Architecture & Invariants (ARCHITECTURE.md)](ARCHITECTURE.md)
-* [Security Threat Model & Proof Matrix (SECURITY.md)](SECURITY.md)
-* [Physical Assumptions & Modeling (docs/ASSUMPTIONS.md)](docs/ASSUMPTIONS.md)
-* [Evaluation Methodology & Verification Evidence (docs/EVALUATION.md)](docs/EVALUATION.md)
-* [3-Minute Live Demonstration Script (docs/DEMO_SCRIPT.md)](docs/DEMO_SCRIPT.md)
+> If anyone in your household experiences severe chest tightness, shortness of breath, gasping, or bluish lips/face, immediately discontinue application use and seek emergency medical care (`112` / `102`).
