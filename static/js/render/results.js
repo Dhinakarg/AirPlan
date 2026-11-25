@@ -1,57 +1,72 @@
 /**
- * @fileoverview Screen 3: Clean-Air Plan Results, 12-col grid, SVG timeline, and Impact Receipts.
+ * @fileoverview Screen 3: Clean-Air Plan Results, scenarios, commute table, and print/storage controls.
  */
 
 import { announce, showError } from '../a11y.js';
 import { createPlan } from '../api.js';
 import { el } from '../dom.js';
-import { formatConcentration, getAqiCategory, t } from '../i18n.js';
-import { getState, setState } from '../state.js';
+import { formatConcentration, t } from '../i18n.js';
+import { getState, resetState, setState } from '../state.js';
+import { renderCommuteTable } from './commute.js';
+import { renderTimelineInto } from './timeline.js';
 
-function renderTimelineInto(sec, memberExposure) {
-  if (!memberExposure?.hours) return;
-  sec.appendChild(el('h3', '', '24-Hour Particulate Exposure Timeline'));
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 480 160');
-  svg.setAttribute('class', 'chart-svg');
-  svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Hourly particulate exposure graph across 24 hours');
-
-  const maxVal = Math.max(...memberExposure.hours.map((h) => h.pm25_ug_m3), 300);
-  let pathD = '';
-  memberExposure.hours.forEach((h, i) => {
-    const x = i * 20 + 10, y = 140 - (h.pm25_ug_m3 / maxVal) * 120;
-    pathD += (i === 0 ? 'M' : 'L') + `${x},${y}`;
-  });
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', pathD);
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', '#0b7a75');
-  path.setAttribute('stroke-width', '3');
-  svg.appendChild(path);
-  sec.appendChild(svg);
-
-  const wrap = el('div', 'table-container'), tbl = el('table'), cap = el('caption', '', 'Hour-by-hour particulate exposure concentrations and AQI classifications');
-  tbl.appendChild(cap);
-  const thead = el('thead'), trH = el('tr');
-  ['Hour', 'PM2.5 Conc', 'Inhaled Dose', 'AQI Category'].forEach((h) => {
-    const th = el('th', '', h); th.scope = 'col'; trH.appendChild(th);
-  });
-  thead.appendChild(trH);
-  tbl.appendChild(thead);
-
-  const tbody = el('tbody');
-  memberExposure.hours.forEach((h) => {
-    const tr = el('tr'), aqi = getAqiCategory(h.pm25_ug_m3);
-    [`${h.hour}:00`, formatConcentration(h.pm25_ug_m3), `${h.dose_ug.toFixed(1)} µg`, `${aqi.icon} ${aqi.label} ${aqi.pattern}`].forEach((val) => {
-      tr.appendChild(el('td', '', val));
+async function runPlanGeneration(s, lang) {
+  announce(t('loading', lang));
+  setState({ isLoading: true, error: null });
+  try {
+    const res = await createPlan({
+      members: s.members,
+      home: s.home,
+      latitude: s.latitude,
+      longitude: s.longitude,
+      budget_inr: s.budgetInr,
+      language: lang,
+      scenario: s.scenario || 'live',
+      commute_distance_km: s.commuteDistanceKm || 8.0,
     });
-    tbody.appendChild(tr);
+    const isDemo = res.data_source === 'sample' || String(res.data_source).startsWith('demo:');
+    setState({ planResult: res, isDemoData: isDemo, isLoading: false });
+    announce('Clean-air plan calculated.');
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Plan calculation failed';
+    setState({ isLoading: false, error: msg });
+    showError(msg);
+  }
+}
+
+function buildScenarioBar(s, lang) {
+  const bar = el('div', 'actions scenario-bar');
+  const scenLbl = el('label', '', `${t('scenarioLabel', lang)}: `);
+  scenLbl.htmlFor = 'scenario-select';
+  const scenSel = el('select');
+  scenSel.id = 'scenario-select';
+  [
+    ['live', t('scenarioLive', lang)],
+    ['severe', t('scenarioSevere', lang)],
+    ['moderate', t('scenarioModerate', lang)],
+    ['cleaner', t('scenarioCleaner', lang)],
+  ].forEach(([val, lbl]) => {
+    const opt = Object.assign(el('option', '', lbl), { value: val, selected: s.scenario === val });
+    scenSel.appendChild(opt);
   });
-  tbl.appendChild(tbody);
-  wrap.appendChild(tbl);
-  sec.appendChild(wrap);
+  scenSel.addEventListener('change', (e) => setState({ scenario: e.target.value }));
+
+  const genBtn = Object.assign(el('button', 'btn primary btn-primary', `🚀 ${t('generatePlan', lang)}`), { type: 'button' });
+  genBtn.addEventListener('click', () => runPlanGeneration(getState(), lang));
+
+  const printBtn = Object.assign(el('button', 'btn btn-secondary', `🖨️ ${t('printPlan', lang)}`), { type: 'button', id: 'print-plan-btn' });
+  printBtn.addEventListener('click', () => {
+    if (typeof window !== 'undefined' && window.print) window.print();
+  });
+
+  const clearBtn = Object.assign(el('button', 'btn btn-secondary', t('clearSavedData', lang)), { type: 'button', id: 'clear-saved-btn' });
+  clearBtn.addEventListener('click', () => {
+    resetState();
+    announce(t('clearSavedData', lang));
+  });
+
+  bar.append(scenLbl, scenSel, genBtn, printBtn, clearBtn);
+  return bar;
 }
 
 /**
@@ -64,31 +79,15 @@ export function renderResultsScreen(container) {
   container.replaceChildren();
   const s = getState(), lang = s.language;
 
-  const triggerRow = el('div', 'actions');
-  const genBtn = el('button', 'btn primary btn-primary', `🚀 ${t('generatePlan', lang)}`);
-  genBtn.type = 'button';
-  genBtn.addEventListener('click', async () => {
-    announce(t('loading', lang));
-    setState({ isLoading: true, error: null });
-    try {
-      const res = await createPlan({ members: s.members, home: s.home, latitude: s.latitude, longitude: s.longitude, budget_inr: s.budgetInr, language: lang });
-      setState({ planResult: res, isDemoData: res.data_source === 'sample', isLoading: false });
-      announce('Clean-air plan calculated.');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Plan calculation failed';
-      setState({ isLoading: false, error: msg });
-      showError(msg);
-    }
-  });
-  triggerRow.appendChild(genBtn);
-  container.appendChild(triggerRow);
+  container.appendChild(buildScenarioBar(s, lang));
+  container.appendChild(el('small', 'help-text', t('localPrivacyNote', lang)));
 
   const plan = s.planResult;
   if (!plan) return;
 
   const grid = el('div', 'plan-grid');
   if (s.isDemoData) {
-    const demo = el('div', 'demo-banner card grid-col-12', `ℹ️ ${t('demoDataBanner', lang)}`);
+    const demo = el('div', 'demo-banner card grid-col-12', `ℹ️ ${t('demoDataBanner', lang)} (${plan.data_source})`);
     demo.setAttribute('role', 'region');
     demo.setAttribute('aria-label', 'Data Source');
     grid.appendChild(demo);
@@ -100,45 +99,34 @@ export function renderResultsScreen(container) {
   const heroCard = el('div', 'card grid-col-12');
   const heroHdr = el('div', 'flex-between', [el('h3', '', 'Household Exposure Index (Before vs After)'), el('span', 'badge', t('illustrative', lang))]);
   const kpis = el('div', 'field-row');
-  const kpi1 = el('div', 'kpi-card', [el('div', 'kpi-val', '100.0'), el('div', 'kpi-label', t('exposureBefore', lang))]);
-  const kpi2 = el('div', 'kpi-card', [el('div', 'kpi-val', String(idxAfter)), el('div', 'kpi-label', t('exposureAfter', lang))]);
-  kpis.append(kpi1, kpi2);
+  kpis.append(
+    el('div', 'kpi-card', [el('div', 'kpi-val', '100.0'), el('div', 'kpi-label', t('exposureBefore', lang))]),
+    el('div', 'kpi-card', [el('div', 'kpi-val', String(idxAfter)), el('div', 'kpi-label', t('exposureAfter', lang))]),
+  );
   heroCard.append(heroHdr, kpis, el('p', '', `Mitigation strategies reduce inhaled dose by ${(100 - idxAfter).toFixed(0)}% within monthly limit.`));
   grid.appendChild(heroCard);
 
   // 2. Three insight cards
-  const w = plan.ventilation_window;
-  const ww = plan.worst_window;
-  const cVent = el('div', 'card grid-col-4', [
-    el('h3', '', '🪟 Best time to air'),
-    el('p', '', w ? `${w.start_hour}:00–${w.end_hour}:00` : '12:00–14:00'),
-    el('small', 'help-text', w ? `Avg PM2.5: ${formatConcentration(w.mean_pm25)}` : 'Midday smog dispersion'),
-  ]);
-  const cOut = el('div', 'card grid-col-4', [
-    el('h3', '', '⚠️ Worst outdoor time'),
-    el('p', '', ww ? `${ww.start_hour}:00–${ww.end_hour}:00` : '18:00–21:00'),
-    el('small', 'help-text', ww ? `Avg PM2.5: ${formatConcentration(ww.mean_pm25)}` : 'Evening peak traffic and night-time inversion.'),
-  ]);
-  const cInv = el('div', 'card grid-col-4', [
-    el('h3', '', '🌡️ Atmospheric trap'),
-    el('p', '', 'Active boundary layer inversion'),
-    el('small', 'help-text', 'Trapping ground-level particulate matter until midday heating.'),
-  ]);
-  grid.append(cVent, cOut, cInv);
+  const w = plan.ventilation_window, ww = plan.worst_window;
+  grid.append(
+    el('div', 'card grid-col-4', [el('h3', '', '🪟 Best time to air'), el('p', '', w ? `${w.start_hour}:00–${w.end_hour}:00` : 'None safe today'), el('small', 'help-text', w ? `Avg PM2.5: ${formatConcentration(w.mean_pm25)}` : 'Keep windows shut during severe smog')]),
+    el('div', 'card grid-col-4', [el('h3', '', '⚠️ Worst outdoor time'), el('p', '', ww ? `${ww.start_hour}:00–${ww.end_hour}:00` : '18:00–21:00'), el('small', 'help-text', ww ? `Avg PM2.5: ${formatConcentration(ww.mean_pm25)}` : 'Evening peak traffic and night-time inversion.')]),
+    el('div', 'card grid-col-4', [el('h3', '', '🌡️ Atmospheric trap'), el('p', '', plan.inversion?.hours?.length ? 'Active boundary layer inversion' : 'Clear dispersion'), el('small', 'help-text', 'Trapping ground-level particulate matter until midday heating.')]),
+  );
 
   // 3. Top-3 actions
-  const topActions = (plan.ranked_interventions || []).slice(0, 3);
-  topActions.forEach((item, i) => {
-    const actCard = el('div', 'card grid-col-4', [el('span', 'badge', `#${i + 1} Action`), el('h3', '', item.title), el('p', '', `Cost: ₹${item.cost_inr_per_month}/mo • Impact: ${(item.impact * 100).toFixed(0)}%`)]);
-    const det = el('details', 'impact-receipt', [el('summary', '', `🧾 ${t('impactReceipt', lang)}`), el('p', '', item.why_this_rank), el('p', 'provenance-tag', `${t('assumptions', lang)}: ${item.provenance.text} [Confidence: ${item.provenance.confidence}]`)]);
-    actCard.appendChild(det);
+  (plan.ranked_interventions || []).slice(0, 3).forEach((item, i) => {
+    const act = item.intervention || item;
+    const actCard = el('div', 'card grid-col-4', [el('span', 'badge', `#${i + 1} Action`), el('h3', '', act.title), el('p', '', `Cost: ₹${act.cost_inr_per_month}/mo • Impact: ${(act.impact * 100).toFixed(0)}%`)]);
+    actCard.appendChild(el('details', 'impact-receipt', [el('summary', '', `🧾 ${t('impactReceipt', lang)}`), el('p', '', item.why_this_rank), el('p', 'provenance-tag', `${t('assumptions', lang)}: ${act.provenance.text} [Confidence: ${act.provenance.confidence}]`)]));
     grid.appendChild(actCard);
   });
 
-  // 4. Timeline chart
+  // 4. Commute Mode Comparison Table + 5. Timeline + 6. Print Disclaimer
+  renderCommuteTable(grid, plan.commute_comparison, lang);
   const timeCard = el('div', 'card grid-col-12');
   renderTimelineInto(timeCard, firstExp);
   grid.appendChild(timeCard);
-
+  grid.appendChild(el('p', 'print-only-disclaimer grid-col-12', t('printDisclaimer', lang)));
   container.appendChild(grid);
 }

@@ -19,3 +19,4 @@
 * **Context**: Users experiencing acute respiratory or cardiac emergencies (e.g., chest pain, severe dyspnea, cyanosis) must not be routed to routine environmental planning.
 * **Decision**: Screen incoming queries deterministically in English and Hindi (`app/engine/safety_rules.py`) before any AI invocation, with negation awareness to avoid false positives.
 * **Consequence**: Immediate emergency clinical triage directive (`112`/`102`) with zero LLM latency or override risk.
+

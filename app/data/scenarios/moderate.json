@@ -1,0 +1,30 @@
+{
+  "scenario": "moderate",
+  "label": "Demo data — Moderate winter day with midday dispersion",
+  "hourly": [
+    {"hour": 0, "pm25": 175.0, "wind_kmh": 5.5, "boundary_layer_m": 240.0},
+    {"hour": 1, "pm25": 180.0, "wind_kmh": 5.2, "boundary_layer_m": 230.0},
+    {"hour": 2, "pm25": 185.0, "wind_kmh": 5.0, "boundary_layer_m": 220.0},
+    {"hour": 3, "pm25": 190.0, "wind_kmh": 5.0, "boundary_layer_m": 220.0},
+    {"hour": 4, "pm25": 185.0, "wind_kmh": 5.2, "boundary_layer_m": 230.0},
+    {"hour": 5, "pm25": 180.0, "wind_kmh": 5.5, "boundary_layer_m": 240.0},
+    {"hour": 6, "pm25": 170.0, "wind_kmh": 6.0, "boundary_layer_m": 260.0},
+    {"hour": 7, "pm25": 160.0, "wind_kmh": 6.5, "boundary_layer_m": 290.0},
+    {"hour": 8, "pm25": 145.0, "wind_kmh": 7.5, "boundary_layer_m": 380.0},
+    {"hour": 9, "pm25": 125.0, "wind_kmh": 9.0, "boundary_layer_m": 520.0},
+    {"hour": 10, "pm25": 105.0, "wind_kmh": 10.5, "boundary_layer_m": 680.0},
+    {"hour": 11, "pm25": 92.0, "wind_kmh": 11.5, "boundary_layer_m": 820.0},
+    {"hour": 12, "pm25": 82.0, "wind_kmh": 12.5, "boundary_layer_m": 920.0},
+    {"hour": 13, "pm25": 74.0, "wind_kmh": 13.0, "boundary_layer_m": 980.0},
+    {"hour": 14, "pm25": 76.0, "wind_kmh": 12.8, "boundary_layer_m": 950.0},
+    {"hour": 15, "pm25": 88.0, "wind_kmh": 11.5, "boundary_layer_m": 840.0},
+    {"hour": 16, "pm25": 110.0, "wind_kmh": 9.5, "boundary_layer_m": 620.0},
+    {"hour": 17, "pm25": 135.0, "wind_kmh": 7.5, "boundary_layer_m": 420.0},
+    {"hour": 18, "pm25": 160.0, "wind_kmh": 6.2, "boundary_layer_m": 290.0},
+    {"hour": 19, "pm25": 175.0, "wind_kmh": 5.8, "boundary_layer_m": 260.0},
+    {"hour": 20, "pm25": 185.0, "wind_kmh": 5.5, "boundary_layer_m": 240.0},
+    {"hour": 21, "pm25": 188.0, "wind_kmh": 5.4, "boundary_layer_m": 235.0},
+    {"hour": 22, "pm25": 182.0, "wind_kmh": 5.5, "boundary_layer_m": 240.0},
+    {"hour": 23, "pm25": 178.0, "wind_kmh": 5.5, "boundary_layer_m": 240.0}
+  ]
+}

@@ -24,6 +24,7 @@ def test_index_html_loads_split_stylesheets(client: TestClient) -> None:
         "/static/css/feedback.css",
         "/static/css/dialogs.css",
         "/static/css/themes.css",
+        "/static/css/print.css",
     ]
     for css_url in expected_stylesheets:
         assert f'href="{css_url}"' in html, f"Missing stylesheet link: {css_url}"

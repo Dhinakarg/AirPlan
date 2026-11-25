@@ -30,3 +30,4 @@ Automated CI checks enforce strict line limits across all source directories:
 * **Backend Python (`app/**/*.py`)**: $\le 200$ lines per file.
 * **Stylesheets (`static/css/*.css`)**: $\le 200$ lines per file.
 * **Frontend JavaScript (`static/js/**/*.js`)**: $\le 150$ lines per file.
+

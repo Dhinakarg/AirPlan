@@ -11,6 +11,7 @@ from app.api.schemas_community import (
     PledgeRequest,
     PledgeResponse,
 )
+from app.engine.commute import CommuteComparison
 from app.engine.models import (
     AgeGroup,
     CookingFuel,
@@ -79,6 +80,16 @@ class PlanRequest(BaseModel):
         default="en",
         description="UI and response language preference",
     )
+    scenario: Literal["live", "severe", "moderate", "cleaner"] = Field(
+        default="live",
+        description="Air quality data source or bundled demo scenario",
+    )
+    commute_distance_km: float = Field(
+        default=8.0,
+        ge=0.5,
+        le=100.0,
+        description="One-way commute distance in km for mode comparison",
+    )
 
 
 class PlanResponse(BaseModel):
@@ -91,6 +102,7 @@ class PlanResponse(BaseModel):
     worst_window: Window | None
     inversion: InversionResult
     ranked_interventions: list[RankedIntervention]
+    commute_comparison: CommuteComparison | None = None
     ai_guidance: dict[str, Any]
     data_source: str
     provenance: Provenance

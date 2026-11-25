@@ -2,6 +2,8 @@
  * @fileoverview Reactive application state container. Single source of truth.
  */
 
+import { clearSavedHousehold, loadSavedHousehold, saveHousehold } from './storage.js';
+
 /**
  * 5 Pre-configured cities facing seasonal northern Indian winter smog.
  * @type {Record<string, {name: string, lat: number, lon: number}>}
@@ -33,21 +35,24 @@ export const DEFAULT_ROUTINE = [
  * @returns {Record<string, any>} Initialized state object.
  */
 function createInitialState() {
+  const saved = loadSavedHousehold();
   return {
     language: 'en',
     highContrast: false,
     simpleLanguage: false,
     textSize: 'normal',
-    city: 'delhi',
-    latitude: 28.61,
-    longitude: 77.21,
-    budgetInr: 500,
-    home: {
+    city: saved?.city || 'delhi',
+    latitude: saved?.latitude ?? 28.61,
+    longitude: saved?.longitude ?? 77.21,
+    budgetInr: saved?.budgetInr ?? 500,
+    scenario: 'live',
+    commuteDistanceKm: 8.0,
+    home: saved?.home || {
       leakiness: 'average',
       purifier: false,
       windows_open_hours: [13, 14],
     },
-    members: [
+    members: saved?.members || [
       {
         name: 'Aarav',
         age_group: 'child',
@@ -92,6 +97,7 @@ export function getState() {
  */
 export function setState(update) {
   Object.assign(state, update);
+  saveHousehold(state);
   subscribers.forEach((listener) => {
     try {
       listener(state);
@@ -120,6 +126,7 @@ export function subscribe(listener) {
  * @returns {void}
  */
 export function resetState() {
+  clearSavedHousehold();
   state = createInitialState();
   subscribers.forEach((listener) => {
     try {

@@ -2,7 +2,12 @@
 
 from collections.abc import Sequence
 
-from app.constants import COST_NORMALIZATION_INR, EFFORT_MAX
+from app.constants import (
+    COST_NORMALIZATION_INR,
+    EFFORT_MAX,
+    NAAQS_PM25_24H_LIMIT_UG_M3,
+    SEVERE_SMOG_THRESHOLD_UG_M3,
+)
 from app.engine.interventions import get_default_catalog
 from app.engine.models import (
     HouseholdContext,
@@ -62,8 +67,23 @@ def _build_rank_reason(rank: int, item: Intervention, score: float) -> str:
     )
 
 
+def _severity_multiplier(item_id: str, ambient_pm25: float | None) -> float:
+    """Adjust intervention priority score based on ambient PM2.5 severity."""
+    if ambient_pm25 is None:
+        return 1.0
+    protective_ids = {"n95_mask_commute", "diy_corsi_rosenthal", "purifier", "seal_door_gaps"}
+    if ambient_pm25 >= SEVERE_SMOG_THRESHOLD_UG_M3:
+        return 1.45 if item_id in protective_ids else 0.9
+    if ambient_pm25 < NAAQS_PM25_24H_LIMIT_UG_M3:
+        return 0.65 if item_id in protective_ids else 1.25
+    return 1.0
+
+
 def _filter_and_score(
-    pool: Sequence[Intervention], context: HouseholdContext, budget_inr: float
+    pool: Sequence[Intervention],
+    context: HouseholdContext,
+    budget_inr: float,
+    ambient_pm25: float | None = None,
 ) -> list[tuple[float, str, Intervention, float]]:
     """Filter candidates by budget and feasibility and compute scoring tuples."""
     candidates: list[tuple[float, str, Intervention, float]] = []
@@ -73,7 +93,8 @@ def _filter_and_score(
         feas = compute_feasibility(item, context)
         if feas <= 0.0:
             continue
-        score = compute_ranking_score(item.impact, feas, item.cost_inr_per_month, item.effort)
+        base_score = compute_ranking_score(item.impact, feas, item.cost_inr_per_month, item.effort)
+        score = round(base_score * _severity_multiplier(item.id, ambient_pm25), 4)
         candidates.append((score, item.id, item, feas))
     candidates.sort(key=lambda t: (-t[0], t[1]))
     return candidates
@@ -83,10 +104,11 @@ def rank_interventions(
     context: HouseholdContext,
     budget_inr: float,
     catalog: Sequence[Intervention] | None = None,
+    ambient_pm25: float | None = None,
 ) -> list[RankedIntervention]:
     """Score, filter by constraints and budget, and stably rank interventions."""
     pool = catalog if catalog is not None else get_default_catalog()
-    candidates = _filter_and_score(pool, context, budget_inr)
+    candidates = _filter_and_score(pool, context, budget_inr, ambient_pm25)
     return [
         RankedIntervention(
             intervention=item,

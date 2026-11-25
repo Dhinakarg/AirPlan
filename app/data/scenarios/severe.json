@@ -1,0 +1,30 @@
+{
+  "scenario": "severe",
+  "label": "Demo data — Severe winter smog episode",
+  "hourly": [
+    {"hour": 0, "pm25": 410.0, "wind_kmh": 3.0, "boundary_layer_m": 130.0},
+    {"hour": 1, "pm25": 425.0, "wind_kmh": 2.8, "boundary_layer_m": 120.0},
+    {"hour": 2, "pm25": 440.0, "wind_kmh": 2.5, "boundary_layer_m": 115.0},
+    {"hour": 3, "pm25": 450.0, "wind_kmh": 2.5, "boundary_layer_m": 110.0},
+    {"hour": 4, "pm25": 455.0, "wind_kmh": 2.8, "boundary_layer_m": 115.0},
+    {"hour": 5, "pm25": 445.0, "wind_kmh": 3.0, "boundary_layer_m": 125.0},
+    {"hour": 6, "pm25": 430.0, "wind_kmh": 3.2, "boundary_layer_m": 140.0},
+    {"hour": 7, "pm25": 410.0, "wind_kmh": 3.5, "boundary_layer_m": 160.0},
+    {"hour": 8, "pm25": 380.0, "wind_kmh": 4.2, "boundary_layer_m": 210.0},
+    {"hour": 9, "pm25": 345.0, "wind_kmh": 4.8, "boundary_layer_m": 260.0},
+    {"hour": 10, "pm25": 310.0, "wind_kmh": 5.5, "boundary_layer_m": 320.0},
+    {"hour": 11, "pm25": 280.0, "wind_kmh": 6.0, "boundary_layer_m": 380.0},
+    {"hour": 12, "pm25": 255.0, "wind_kmh": 6.5, "boundary_layer_m": 430.0},
+    {"hour": 13, "pm25": 240.0, "wind_kmh": 7.0, "boundary_layer_m": 460.0},
+    {"hour": 14, "pm25": 245.0, "wind_kmh": 6.8, "boundary_layer_m": 450.0},
+    {"hour": 15, "pm25": 265.0, "wind_kmh": 6.0, "boundary_layer_m": 390.0},
+    {"hour": 16, "pm25": 295.0, "wind_kmh": 5.0, "boundary_layer_m": 300.0},
+    {"hour": 17, "pm25": 335.0, "wind_kmh": 4.2, "boundary_layer_m": 230.0},
+    {"hour": 18, "pm25": 370.0, "wind_kmh": 3.8, "boundary_layer_m": 180.0},
+    {"hour": 19, "pm25": 395.0, "wind_kmh": 3.4, "boundary_layer_m": 155.0},
+    {"hour": 20, "pm25": 415.0, "wind_kmh": 3.1, "boundary_layer_m": 140.0},
+    {"hour": 21, "pm25": 425.0, "wind_kmh": 3.0, "boundary_layer_m": 135.0},
+    {"hour": 22, "pm25": 420.0, "wind_kmh": 3.0, "boundary_layer_m": 130.0},
+    {"hour": 23, "pm25": 415.0, "wind_kmh": 3.0, "boundary_layer_m": 130.0}
+  ]
+}

@@ -4,7 +4,8 @@ from typing import Any
 
 from app.ai.provider import AssistantProvider
 from app.api.schemas import PlanResponse
-from app.data.air_client import fetch_hourly_air
+from app.data.air_client import fetch_hourly_air, load_scenario_air_data
+from app.engine.commute import CommuteComparison, compare_commute_modes
 from app.engine.enums import AgeGroup, Sensitivity
 from app.engine.exposure import calculate_day_exposure
 from app.engine.models import (
@@ -122,6 +123,7 @@ def _build_plan(
     worst_win: Window | None,
     inversion: InversionResult,
     ranked: list[RankedIntervention],
+    commute_cmp: CommuteComparison,
     guidance: dict[str, Any],
 ) -> PlanResponse:
     """Assemble final validated PlanResponse object."""
@@ -131,6 +133,7 @@ def _build_plan(
         worst_window=worst_win,
         inversion=inversion,
         ranked_interventions=ranked,
+        commute_comparison=commute_cmp,
         ai_guidance=guidance,
         data_source=air[0].source if air else "sample",
         provenance=Provenance(
@@ -147,6 +150,13 @@ def _analyze_meteorology(
     return find_ventilation_window(air), worst_exposure_window(air), detect_inversion(air)
 
 
+def _load_air_for_plan(lat: float, lon: float, date: str | None, scenario: str) -> list[HourlyAir]:
+    """Load either bundled scenario data or live/cached atmospheric observations."""
+    if scenario != "live":
+        return load_scenario_air_data(scenario)
+    return fetch_hourly_air(round(lat, 2), round(lon, 2), date)
+
+
 def create_clean_air_plan(
     members: list[MemberPlanInput],
     home: HomeProfile,
@@ -158,12 +168,16 @@ def create_clean_air_plan(
     context: HouseholdContext | None = None,
     language: str = "en",
     provider: AssistantProvider | None = None,
+    scenario: str = "live",
+    commute_distance_km: float = 8.0,
 ) -> PlanResponse:
     """Orchestrate diurnal air fetching, exposure calculation, and AI advice."""
-    air = fetch_hourly_air(round(latitude, 2), round(longitude, 2), date)
+    air = _load_air_for_plan(latitude, longitude, date, scenario)
+    mean_pm = round(sum(h.pm25 for h in air) / len(air), 1) if air else 150.0
     members_exp = _calc_members_exposure(members, air, home)
     vw, ww, inv = _analyze_meteorology(air)
-    rk = rank_interventions(_resolve_context(context, members), budget_inr)
+    rk = rank_interventions(_resolve_context(context, members), budget_inr, ambient_pm25=mean_pm)
+    commute_cmp = compare_commute_modes(mean_pm, commute_distance_km)
     g = generate_clean_air_advice(
         "Summarize today's clean air plan and actionable tips.",
         _extract_facts(vw, ww, inv, rk, members_exp),
@@ -171,5 +185,12 @@ def create_clean_air_plan(
         provider=provider,
     )
     return _build_plan(
-        members_exp, air, vent_win=vw, worst_win=ww, inversion=inv, ranked=rk, guidance=g
+        members_exp,
+        air,
+        vent_win=vw,
+        worst_win=ww,
+        inversion=inv,
+        ranked=rk,
+        commute_cmp=commute_cmp,
+        guidance=g,
     )

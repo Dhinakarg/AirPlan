@@ -34,29 +34,46 @@ __all__ = [
     "OpenMeteoWeatherResponse",
     "fetch_hourly_air",
     "load_sample_air_data",
+    "load_scenario_air_data",
 ]
 
 logger = logging.getLogger(__name__)
 
 
+def _load_hourly_file(path: Path, source_tag: str) -> list[HourlyAir]:
+    """Load hourly smog dataset from a bundled JSON file."""
+    with path.open(encoding="utf-8") as f:
+        data = json.load(f)
+    return [
+        HourlyAir(
+            hour=int(item["hour"]),
+            pm25=float(item["pm25"]),
+            wind_kmh=float(item["wind_kmh"]),
+            boundary_layer_m=item.get("boundary_layer_m"),
+            source=source_tag,
+        )
+        for item in data.get("hourly", [])
+    ]
+
+
 def load_sample_air_data() -> list[HourlyAir]:
     """Load offline sample diurnal smog profile from bundled JSON dataset."""
     try:
-        path = Path(__file__).parent / "sample_data.json"
-        with path.open(encoding="utf-8") as f:
-            data = json.load(f)
-        return [
-            HourlyAir(
-                hour=int(item["hour"]),
-                pm25=float(item["pm25"]),
-                wind_kmh=float(item["wind_kmh"]),
-                boundary_layer_m=item.get("boundary_layer_m"),
-                source="sample",
-            )
-            for item in data.get("hourly", [])
-        ]
+        return _load_hourly_file(Path(__file__).parent / "sample_data.json", "sample")
     except Exception as exc:
         raise AirDataError(f"Failed loading sample smog dataset: {exc}") from exc
+
+
+def load_scenario_air_data(scenario: str) -> list[HourlyAir]:
+    """Load bundled demo scenario ('severe', 'moderate', or 'cleaner')."""
+    allowed = {"severe", "moderate", "cleaner"}
+    if scenario not in allowed:
+        raise AirDataError(f"Unknown air scenario: {scenario}")
+    try:
+        path = Path(__file__).parent / "scenarios" / f"{scenario}.json"
+        return _load_hourly_file(path, f"demo:{scenario}")
+    except Exception as exc:
+        raise AirDataError(f"Failed loading scenario '{scenario}': {exc}") from exc
 
 
 def _request_with_retry(

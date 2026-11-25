@@ -62,6 +62,8 @@ def plan_endpoint(req: PlanRequest) -> PlanResponse:
         budget_inr=req.budget_inr,
         context=req.context,
         language=req.language,
+        scenario=req.scenario,
+        commute_distance_km=req.commute_distance_km,
     )
 
 
