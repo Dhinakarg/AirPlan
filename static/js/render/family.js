@@ -74,7 +74,7 @@ export function renderFamilyScreen(container) {
     const cancelBtn = Object.assign(el('button', 'btn btn-secondary', 'Cancel'), { type: 'button' });
     const toggleAddView = (open) => {
       panel.hidden = !open; memList.hidden = open; openRow.hidden = open;
-      hbDetails.hidden = open; actions.hidden = open;
+      hbGrid.hidden = open; actions.hidden = open;
       if (open) nameIn.focus(); else errEl.textContent = '';
     };
     openBtn.addEventListener('click', () => toggleAddView(true));
@@ -97,11 +97,9 @@ export function renderFamilyScreen(container) {
   }
   mainCol.appendChild(c1);
 
-  // Collapsible Home & Budget section (keeps landing view focused on household members)
-  const hbDetails = Object.assign(el('details', 'card'), { id: 'home-budget-details', open: Boolean(s.homeBudgetOpen) });
-  hbDetails.addEventListener('toggle', () => setState({ homeBudgetOpen: hbDetails.open }, true));
-  hbDetails.appendChild(el('summary', 'card-title', `🏠 ${t('yourHome', lang)} & ${t('yourBudget', lang)}`));
-  const c2 = el('div', 'field'), leakSel = el('select'), citySel = el('select');
+  // Two open cards ("Your home" & "Your budget") in a two-column desktop grid
+  const hbGrid = el('div', 'grid-2col');
+  const c2 = el('div', 'card'), leakSel = el('select'), citySel = el('select');
   c2.appendChild(el('h3', '', t('yourHome', lang)));
   leakSel.appendChild(opt('', 'Select home leakiness', !s.homeSelected));
   ['tight', 'average', 'leaky'].forEach((l) => leakSel.appendChild(opt(l, labelFor('leakiness', l, lang), Boolean(s.homeSelected && l === s.home.leakiness))));
@@ -122,7 +120,7 @@ export function renderFamilyScreen(container) {
   pF.append(pLbl, pHelp);
   c2.append(homeRow, pF);
 
-  const c3 = el('div', 'field'), bF = el('div', 'field'), bRow = el('div', 'field-row');
+  const c3 = el('div', 'card'), bF = el('div', 'field'), bRow = el('div', 'field-row');
   c3.appendChild(el('h3', '', t('yourBudget', lang)));
   const bLbl = Object.assign(el('label', '', s.budgetSelected ? `₹${s.budgetInr} per month` : 'Enter monthly budget (INR)'), { htmlFor: 'budget-slider', id: 'budget-amount-label' });
   const bRange = Object.assign(el('input'), { type: 'range', id: 'budget-slider', min: '0', max: '20000', step: '100', value: String(s.budgetInr) });
@@ -140,7 +138,7 @@ export function renderFamilyScreen(container) {
   bRange.addEventListener('input', (e) => syncB(e.target.value, false));
   bNum.addEventListener('input', (e) => syncB(e.target.value, true));
   bRow.append(bRange, bNum); bF.append(bLbl, bRow, bHelp); c3.append(bF);
-  hbDetails.append(c2, c3); mainCol.appendChild(hbDetails);
+  hbGrid.append(c2, c3); mainCol.appendChild(hbGrid);
   const actions = el('div', 'actions');
   actions.appendChild(Object.assign(el('button', 'btn primary btn-primary', t('nextYourDay', lang)), { type: 'button', id: 'next-to-ledger-btn' }));
   mainCol.append(actions); layout.append(mainCol, renderHouseholdSummary(s, lang)); container.appendChild(layout);

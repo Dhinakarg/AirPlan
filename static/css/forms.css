@@ -89,6 +89,7 @@ input[type="checkbox"] {
 .actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
@@ -107,7 +108,7 @@ input[type="checkbox"] {
   display: none;
 }
 
-/* Day Ledger Routine Grid */
+/* Day Ledger Routine Grid & 24h Strip */
 .blocks-list {
   display: flex;
   flex-direction: column;
@@ -116,9 +117,46 @@ input[type="checkbox"] {
 
 .routine-block-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.4fr 1.4fr auto;
+  grid-template-columns: minmax(88px, 1fr) minmax(88px, 1fr) minmax(160px, 2fr) minmax(160px, 2fr) auto;
   gap: var(--space-3);
   align-items: center;
+}
+
+.ledger-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mobile-field-label {
+  display: none;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+}
+
+.day-strip {
+  display: flex;
+  width: 100%;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface-elevated);
+}
+
+.day-strip-seg {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  border-right: 1px solid var(--border-card);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.day-strip-seg:last-child {
+  border-right: none;
 }
 
 .checkbox-label {
@@ -134,9 +172,15 @@ input[type="checkbox"] {
   flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
+  .ledger-col-headers {
+    display: none;
+  }
   .routine-block-row {
     grid-template-columns: 1fr 1fr;
+  }
+  .mobile-field-label {
+    display: block;
   }
 }
 

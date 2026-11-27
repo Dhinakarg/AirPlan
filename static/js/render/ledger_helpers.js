@@ -1,6 +1,26 @@
 /**
- * @fileoverview Pure routine sorting, 24-hour gap detection, and coverage helpers.
+ * @fileoverview Pure routine sorting, 24-hour gap detection, labels, and strip helpers.
  */
+
+export const SHORT_ACT = {
+  sleep: 'Sleeping',
+  rest: 'Resting',
+  light: 'Light activity',
+  cook: 'Cooking',
+  walk: 'Walking',
+  exercise: 'Exercise',
+};
+
+export const SHORT_MODE = {
+  home: 'At home',
+  outdoor: 'Outdoors',
+  walk: 'Walking',
+  cycle: 'Bicycle',
+  metro: 'Metro',
+  bus: 'Bus',
+  auto_rickshaw: 'Auto',
+  car: 'Car',
+};
 
 /**
  * Sort routine blocks chronologically by start_hour then end_hour.
@@ -31,3 +51,13 @@ export function analyzeRoutineCoverage(routine) {
   return { covered, gapStart: firstGap, gapEnd: end };
 }
 
+/**
+ * Build a plain-text 24-hour schedule summary for screen readers and strip fallback.
+ * @param {Array<{start_hour: number, end_hour: number, activity: string}>} routine
+ * @returns {string}
+ */
+export function summarizeRoutineText(routine) {
+  return routine
+    .map((b) => `${b.start_hour}:00–${b.end_hour}:00 ${SHORT_ACT[b.activity] || b.activity}`)
+    .join(', ');
+}
