@@ -85,7 +85,7 @@ export function bindHeaderControls(onLabelChange) {
   document.getElementById('step-btn-3')?.addEventListener('click', () => switchScreen('screen-results'));
 
   const hero = document.getElementById('hero-banner');
-  if (hero && getState().heroDismissed) hero.hidden = true;
+  if (hero) hero.hidden = Boolean(getState().heroDismissed);
   document.getElementById('hero-demo-btn')?.addEventListener('click', () => {
     if (hero) hero.hidden = true;
     setState({

@@ -46,6 +46,12 @@ main {
   display: none;
 }
 
+.step-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
 /* Breakpoint: Small screens layout */
 @media (max-width: 640px) {
   .app-container {
