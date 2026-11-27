@@ -22,7 +22,7 @@
 }
 
 .site-title {
-  font-size: var(--text-2xl);
+  font-size: 24px;
   font-weight: var(--font-semibold);
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -62,7 +62,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  min-height: var(--target-min);
+  min-height: 48px;
   text-align: center;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
@@ -72,14 +72,25 @@
   color: var(--text-primary);
 }
 
-.stepper-item[aria-current="step"] {
+.stepper-item[aria-current="step"],
+.stepper-item[data-state="current"] {
   background: var(--bg-surface);
   color: var(--color-accent);
   border-bottom: 3px solid var(--color-accent);
 }
 
-.stepper-item.completed {
-  color: var(--text-secondary);
+.stepper-item[data-state="done"] {
+  color: var(--text-primary);
+}
+
+.stepper-item[data-state="done"] .step-num {
+  background: var(--color-accent);
+  color: var(--text-inverse);
+}
+
+.stepper-item[data-state="upcoming"] {
+  color: var(--text-muted);
+  opacity: 0.85;
 }
 
 .step-num {
@@ -96,53 +107,6 @@
 
 .stepper-item[aria-current="step"] .step-num {
   background: var(--color-accent);
-  color: var(--text-inverse);
-}
-
-/* Secondary Navigation */
-.secondary-nav {
-  margin: var(--space-2) 0 var(--space-4);
-}
-
-.secondary-nav-title {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-3);
-}
-
-.secondary-nav-list {
-  display: flex;
-  gap: var(--space-3);
-  list-style: none;
-  flex-wrap: wrap;
-}
-
-.secondary-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-card);
-  color: var(--text-secondary);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-  min-height: var(--target-min);
-}
-
-.secondary-nav-btn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
-.secondary-nav-btn.active-sub {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
   color: var(--text-inverse);
 }
 

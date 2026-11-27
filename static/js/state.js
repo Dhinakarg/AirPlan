@@ -45,6 +45,7 @@ function createInitialState() {
     longitude: saved?.longitude ?? 77.21,
     budgetInr: saved?.budgetInr ?? 500,
     homeSelected: Boolean(saved?.homeSelected), citySelected: Boolean(saved?.citySelected), budgetSelected: Boolean(saved?.budgetSelected),
+    heroDismissed: Boolean(saved || saved?.heroDismissed),
     homeBudgetOpen: false,
     scenario: 'live',
     commuteDistanceKm: 8.0,

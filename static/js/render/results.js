@@ -8,7 +8,7 @@ import { el } from '../dom.js';
 import { t } from '../i18n.js';
 import { getState, resetState, setState } from '../state.js';
 import { renderCommuteTable } from './commute.js';
-import { computePlanFingerprint, renderInsightsAndActions, renderMemberTabs, renderSkeletonGrid, renderSummaryCard } from './results_cards.js';
+import { computePlanFingerprint, renderInsightsAndActions, renderMemberTabs, renderMoreToolsGrid, renderSkeletonGrid, renderSummaryCard } from './results_cards.js';
 import { renderTimelineInto } from './timeline.js';
 
 /**
@@ -122,6 +122,8 @@ export function renderResultsScreen(container) {
   renderCommuteTable(grid, plan.commute_comparison, lang);
   const timeCard = el('div', 'card grid-col-12');
   renderTimelineInto(timeCard, activeExp, lang);
-  grid.append(timeCard, el('p', 'print-only-disclaimer grid-col-12', t('printDisclaimer', lang)));
+  grid.appendChild(timeCard);
+  renderMoreToolsGrid(grid, lang);
+  grid.appendChild(el('p', 'print-only-disclaimer grid-col-12', t('printDisclaimer', lang)));
   container.appendChild(grid);
 }

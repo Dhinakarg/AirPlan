@@ -17,17 +17,15 @@ export function switchScreen(screenId) {
     const sec = document.getElementById(`screen-${name}`);
     if (sec) sec.hidden = `screen-${name}` !== screenId;
   });
-  const stepMap = { 'screen-family': 'step-btn-1', 'screen-ledger': 'step-btn-2', 'screen-results': 'step-btn-3' };
-  ['step-btn-1', 'step-btn-2', 'step-btn-3'].forEach((btnId) => {
+  const stepOrder = ['screen-family', 'screen-ledger', 'screen-results'];
+  const activePos = stepOrder.indexOf(screenId);
+  ['step-btn-1', 'step-btn-2', 'step-btn-3'].forEach((btnId, idx) => {
     const btn = document.getElementById(btnId);
-    if (btn) {
-      if (stepMap[screenId] === btnId) btn.setAttribute('aria-current', 'step');
-      else btn.removeAttribute('aria-current');
-    }
-  });
-  const subMap = { 'screen-detective': 'subnav-detective-btn', 'screen-neighbourhood': 'subnav-neighbourhood-btn', 'screen-assistant': 'subnav-assistant-btn' };
-  Object.values(subMap).forEach((btnId) => {
-    document.getElementById(btnId)?.classList.toggle('active-sub', subMap[screenId] === btnId);
+    if (!btn) return;
+    const state = activePos === -1 ? 'done' : idx < activePos ? 'done' : idx === activePos ? 'current' : 'upcoming';
+    btn.setAttribute('data-state', state);
+    if (state === 'current') btn.setAttribute('aria-current', 'step');
+    else btn.removeAttribute('aria-current');
   });
   if (typeof window !== 'undefined' && window.scrollTo) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -87,13 +85,14 @@ export function bindHeaderControls(onLabelChange) {
   document.getElementById('step-btn-3')?.addEventListener('click', () => switchScreen('screen-results'));
 
   const hero = document.getElementById('hero-banner');
+  if (hero && getState().heroDismissed) hero.hidden = true;
   document.getElementById('hero-demo-btn')?.addEventListener('click', () => {
     if (hero) hero.hidden = true;
     setState({
       city: 'delhi', latitude: 28.61, longitude: 77.21, budgetInr: 800,
       home: { leakiness: 'average', purifier: false, windows_open_hours: [13, 14] },
       homeSelected: true, citySelected: true, budgetSelected: true,
-      scenario: 'moderate', isDemoData: true, planFingerprint: null,
+      heroDismissed: true, scenario: 'moderate', isDemoData: true, planFingerprint: null,
       members: [
         { name: 'Aarav', age_group: 'child', sensitivity: 'asthma_or_heart', routine: JSON.parse(JSON.stringify(DEFAULT_ROUTINE)) },
         { name: 'Sunita', age_group: 'adult', sensitivity: 'none', routine: JSON.parse(JSON.stringify(DEFAULT_ROUTINE)) },
@@ -103,6 +102,7 @@ export function bindHeaderControls(onLabelChange) {
   });
   document.getElementById('hero-setup-btn')?.addEventListener('click', () => {
     if (hero) hero.hidden = true;
+    setState({ heroDismissed: true }, true);
     switchScreen('screen-family');
     document.getElementById('open-add-member-btn')?.focus();
   });
@@ -114,9 +114,8 @@ export function bindHeaderControls(onLabelChange) {
   document.getElementById('screen-family')?.addEventListener('click', (e) => {
     if (e.target.closest('#next-to-ledger-btn')) switchScreen('screen-ledger');
   });
-
-  document.getElementById('subnav-detective-btn')?.addEventListener('click', () => switchScreen('screen-detective'));
-  document.getElementById('subnav-neighbourhood-btn')?.addEventListener('click', () => switchScreen('screen-neighbourhood'));
-  document.getElementById('subnav-assistant-btn')?.addEventListener('click', () => switchScreen('screen-assistant'));
+  document.addEventListener?.('airplan:navigate', (e) => {
+    if (e.detail) switchScreen(e.detail);
+  });
 }
 

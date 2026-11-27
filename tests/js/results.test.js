@@ -98,3 +98,4 @@ test('results screen renders aria-live skeleton while loading and Retry on error
   renderResultsScreen(container);
   assert.ok(container.querySelector('#retry-plan-btn'), 'Empty state must show Retry button');
 });
+

@@ -39,6 +39,7 @@ export function saveHousehold(state) {
       homeSelected: Boolean(state.homeSelected),
       citySelected: Boolean(state.citySelected),
       budgetSelected: Boolean(state.budgetSelected),
+      heroDismissed: Boolean(state.heroDismissed),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch {

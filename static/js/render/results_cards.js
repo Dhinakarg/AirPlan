@@ -124,3 +124,27 @@ export function renderInsightsAndActions(grid, plan, lang) {
     grid.appendChild(actCard);
   });
 }
+
+/**
+ * Render the "More tools" card grid below results (only when a plan exists).
+ * @param {HTMLElement} grid - Target plan grid.
+ * @param {string} lang - Active UI language.
+ * @returns {void}
+ */
+export function renderMoreToolsGrid(grid, lang) {
+  grid.appendChild(el('h3', 'grid-col-12', t('secondaryToolsHeading', lang)));
+  const tools = [
+    { id: 'screen-detective', icon: '🔍', title: t('navDetective', lang), desc: 'Diagnose indoor smoke sources like cooking, incense, and coils.' },
+    { id: 'screen-neighbourhood', icon: '🤝', title: t('navNeighbourhood', lang), desc: 'Log privacy-safe district pledges and track avoided emissions.' },
+    { id: 'screen-assistant', icon: '💬', title: t('navAssistant', lang), desc: 'Ask clean-air questions in English or Hindi with safety screening.' },
+  ];
+  tools.forEach((tool) => {
+    const btn = Object.assign(el('button', 'btn btn-secondary', `Open ${tool.title}`), { type: 'button', id: `more-${tool.id}-btn` });
+    btn.addEventListener('click', () => {
+      if (typeof document !== 'undefined' && typeof CustomEvent !== 'undefined') {
+        document.dispatchEvent(new CustomEvent('airplan:navigate', { detail: tool.id }));
+      }
+    });
+    grid.appendChild(el('div', 'card grid-col-4', [el('h4', '', `${tool.icon} ${tool.title}`), el('p', '', tool.desc), btn]));
+  });
+}

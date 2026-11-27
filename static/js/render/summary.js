@@ -29,7 +29,7 @@ export function renderHouseholdSummary(s, lang) {
     it.append(el('dt', '', dt), ddEl);
     dl.appendChild(it);
   });
-  sumCard.append(dl, el('p', 'summary-hint', t('hintNextRoutine', lang)));
+  sumCard.appendChild(dl);
   aside.appendChild(sumCard);
   return aside;
 }

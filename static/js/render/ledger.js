@@ -128,7 +128,7 @@ export function renderLedgerScreen(container) {
   addItem('Day coverage', cov.covered === 24 ? '24 / 24 hrs ✓' : `${cov.covered} / 24 hrs (fill gaps)`);
   addItem('Blocks', `${currentMember.routine.length} time slots`);
   addItem('Outdoor exposure', `${currentMember.routine.filter((b) => b.mode === 'walk' || b.mode === 'outdoor').length} blocks`);
-  sumCard.append(dl, el('p', 'summary-hint', 'Next: generate your clean-air plan and view hour-by-hour exposure.'));
+  sumCard.appendChild(dl);
   aside.appendChild(sumCard);
   layout.append(mainCol, aside);
   container.appendChild(layout);
