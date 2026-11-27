@@ -134,12 +134,12 @@ export function renderInsightsAndActions(grid, plan, lang) {
 export function renderMoreToolsGrid(grid, lang) {
   grid.appendChild(el('h3', 'grid-col-12', t('secondaryToolsHeading', lang)));
   const tools = [
-    { id: 'screen-detective', icon: '🔍', title: t('navDetective', lang), desc: 'Diagnose indoor smoke sources like cooking, incense, and coils.' },
-    { id: 'screen-neighbourhood', icon: '🤝', title: t('navNeighbourhood', lang), desc: 'Log privacy-safe district pledges and track avoided emissions.' },
-    { id: 'screen-assistant', icon: '💬', title: t('navAssistant', lang), desc: 'Ask clean-air questions in English or Hindi with safety screening.' },
+    { id: 'screen-detective', icon: '🔍', title: t('navDetective', lang), desc: t('toolDetectiveDesc', lang) },
+    { id: 'screen-neighbourhood', icon: '🤝', title: t('navNeighbourhood', lang), desc: t('toolNeighbourhoodDesc', lang) },
+    { id: 'screen-assistant', icon: '💬', title: t('navAssistant', lang), desc: t('toolAssistantDesc', lang) },
   ];
   tools.forEach((tool) => {
-    const btn = Object.assign(el('button', 'btn btn-secondary', `Open ${tool.title}`), { type: 'button', id: `more-${tool.id}-btn` });
+    const btn = Object.assign(el('button', 'btn btn-secondary', `${t('openToolPrefix', lang)} ${tool.title}`), { type: 'button', id: `more-${tool.id}-btn` });
     btn.addEventListener('click', () => {
       if (typeof document !== 'undefined' && typeof CustomEvent !== 'undefined') {
         document.dispatchEvent(new CustomEvent('airplan:navigate', { detail: tool.id }));

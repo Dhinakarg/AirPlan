@@ -2,7 +2,8 @@
  * @fileoverview Navigation, screen switching, and header event binding.
  */
 
-import { announce, isSpeechSupported, setTextSize, speakText, stopSpeaking, toggleHighContrast, toggleSimpleLanguage } from './a11y.js';
+import { announce, isSpeechSupported, setTextSize, showError, speakText, stopSpeaking, toggleHighContrast, toggleSimpleLanguage } from './a11y.js';
+import { t } from './i18n.js';
 import { ensurePlanGenerated } from './render/results.js';
 import { DEFAULT_ROUTINE, getState, setState } from './state.js';
 
@@ -12,6 +13,7 @@ import { DEFAULT_ROUTINE, getState, setState } from './state.js';
  * @returns {void}
  */
 export function switchScreen(screenId) {
+  showError(null);
   const ids = ['family', 'ledger', 'results', 'detective', 'neighbourhood', 'assistant'];
   ids.forEach((name) => {
     const sec = document.getElementById(`screen-${name}`);
@@ -44,7 +46,7 @@ export function bindHeaderControls(onLabelChange) {
   document.getElementById('lang-toggle-btn')?.addEventListener('click', () => {
     const next = getState().language === 'en' ? 'hi' : 'en';
     setState({ language: next });
-    announce(next === 'hi' ? 'भाषा बदलकर हिंदी की गई' : 'Language changed to English');
+    announce(t('langChanged', next));
   });
 
   document.getElementById('contrast-toggle-btn')?.addEventListener('click', () => {

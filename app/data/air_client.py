@@ -14,6 +14,7 @@ from app.constants import (
     HTTP_TIMEOUT_SECONDS,
     WEATHER_FORECAST_BASE_URL,
 )
+from app.context import get_correlation_id
 from app.data.air_parser import (
     OpenMeteoAirHourly,
     OpenMeteoAirResponse,
@@ -60,7 +61,7 @@ def load_sample_air_data() -> list[HourlyAir]:
     """Load offline sample diurnal smog profile from bundled JSON dataset."""
     try:
         return _load_hourly_file(Path(__file__).parent / "sample_data.json", "sample")
-    except Exception as exc:
+    except (OSError, json.JSONDecodeError, KeyError, ValueError) as exc:
         raise AirDataError(f"Failed loading sample smog dataset: {exc}") from exc
 
 
@@ -72,7 +73,7 @@ def load_scenario_air_data(scenario: str) -> list[HourlyAir]:
     try:
         path = Path(__file__).parent / "scenarios" / f"{scenario}.json"
         return _load_hourly_file(path, f"demo:{scenario}")
-    except Exception as exc:
+    except (OSError, json.JSONDecodeError, KeyError, ValueError) as exc:
         raise AirDataError(f"Failed loading scenario '{scenario}': {exc}") from exc
 
 
@@ -90,7 +91,13 @@ def _request_with_retry(
             return resp
         except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError) as exc:
             last_err = exc
-            logger.warning("Attempt %d failed requesting %s: %s", attempt, url, exc)
+            logger.warning(
+                "Attempt %d failed requesting %s [correlation_id=%s]: %s",
+                attempt,
+                url,
+                get_correlation_id(),
+                exc,
+            )
     raise last_err or AirDataError("Request failed after retries")
 
 

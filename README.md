@@ -170,13 +170,13 @@ Run the full automated verification suite with `make check`:
 
 | Quality Gate | Tool | Verified Result |
 | :--- | :--- | :--- |
-| **Python Unit & Integration** | `pytest --cov=app` | **207 passed**, **96.93% coverage** (exceeds 92% target) |
-| **Frontend Tests** | `node --test tests/js/*.test.js` | **27 passed**, 0 failed |
-| **Static Type Checking** | `mypy --strict app tests` | **0 errors** across **65 source files** |
+| **Python Unit & Integration** | `pytest --cov=app` | **211 passed**, **99.42% coverage** (exceeds 92% target) |
+| **Frontend Tests** | `node --test tests/js/*.test.js` | **35 passed**, 0 failed |
+| **Static Type Checking** | `mypy --strict app tests` | **0 errors** across **67 source files** |
 | **Linter & Formatting** | `ruff` | **0 errors**, 0 `noqa` / `type: ignore` suppressions |
 | **Security Auditing** | `bandit` & `pip-audit` | **0 issues identified**; 0 known CVEs |
 | **Code Complexity** | `radon cc` & `radon mi` | **0 Grade C+ blocks**; **100% Grade A maintainability** |
-| **Modular Size Budgets** | `make jslines` | All `app/**/*.py` $\le 200$ lines, all **12 CSS files** $\le 200$ lines, all **19 JS modules** $\le 150$ lines |
+| **Modular Size Budgets** | `make jslines` | All `app/**/*.py` $\le 200$ lines, all CSS files $\le 200$ lines, all JS modules $\le 150$ lines |
 
 See [CODE_QUALITY.md](CODE_QUALITY.md) and [docs/EVALUATION.md](docs/EVALUATION.md) for detailed evidence.
 

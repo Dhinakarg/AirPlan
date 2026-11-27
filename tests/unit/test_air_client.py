@@ -145,7 +145,7 @@ def test_air_data_mode_sample_skips_network(monkeypatch: pytest.MonkeyPatch) -> 
         lambda: Settings(air_data_mode="sample"),
     )
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(_request: httpx.Request) -> httpx.Response:
         raise AssertionError("Network must not be reached in sample mode")
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
@@ -157,7 +157,7 @@ def test_air_data_mode_sample_skips_network(monkeypatch: pytest.MonkeyPatch) -> 
 def test_malformed_payload_raises_air_data_error() -> None:
     """Invalid JSON payload missing required hourly fields raises custom AirDataError."""
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(_request: httpx.Request) -> httpx.Response:
         # Returns 200 OK but invalid payload missing 'pm2_5'
         return httpx.Response(200, json={"unexpected_format": "bad_data"})
 

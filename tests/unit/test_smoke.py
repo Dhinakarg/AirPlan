@@ -18,7 +18,6 @@ MODULES_TO_IMPORT = [
     "app.api.routes",
     "app.api.schemas",
     "app.api.middleware",
-    "app.api.deps",
     "app.services",
     "app.services.plan_service",
     "app.services.simulate_service",

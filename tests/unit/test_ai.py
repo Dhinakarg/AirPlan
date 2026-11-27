@@ -181,7 +181,7 @@ def test_provider_failure_falls_back_to_template() -> None:
     """Provider network exception gracefully falls back to deterministic safe template."""
 
     class FailingProvider:
-        def generate(self, prompt: str) -> str:
+        def generate(self, _prompt: str) -> str:
             raise AIError("API quota exhausted or network down")
 
     facts = {"index_after": 55.0, "dose_saved": 210.0, "window_start": 14}
@@ -196,7 +196,7 @@ def test_rejected_output_falls_back_to_template() -> None:
     """When LLM hallucinates raw digits, validator rejects and activates safe template."""
 
     class HallucinatingProvider:
-        def generate(self, prompt: str) -> str:
+        def generate(self, _prompt: str) -> str:
             # Hallucinates raw numbers 99 and 42
             return json.dumps(
                 {
@@ -269,7 +269,7 @@ def test_gemini_provider_success_response() -> None:
         ]
     }
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json=mock_payload)
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
@@ -281,7 +281,7 @@ def test_gemini_provider_success_response() -> None:
 def test_gemini_provider_empty_candidates_raises() -> None:
     """GeminiProvider raises AIError if candidates array is empty."""
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"candidates": []})
 
     client = httpx.Client(transport=httpx.MockTransport(handler))

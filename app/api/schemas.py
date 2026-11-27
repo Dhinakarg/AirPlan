@@ -155,6 +155,7 @@ class HomeAnalyzeRequest(BaseModel):
     indoor_pm25_reading: float | None = Field(
         default=None,
         ge=0.0,
+        le=5000.0,
         description="Optional indoor PM2.5 reading (ug/m3)",
     )
 

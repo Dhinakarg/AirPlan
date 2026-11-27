@@ -111,3 +111,20 @@ main {
     grid-column: span 4;
   }
 }
+
+.tool-nav-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.tool-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

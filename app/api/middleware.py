@@ -2,7 +2,7 @@
 
 import time
 import uuid
-from collections import defaultdict
+from collections import OrderedDict
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -11,26 +11,49 @@ from starlette.types import ASGIApp
 
 from app.config import get_settings
 from app.constants import MAX_REQUEST_SIZE_BYTES, RATE_LIMIT_WINDOW_SECONDS
+from app.context import correlation_id_var
 
 
 # In-memory sliding-window request timestamps keyed by client IP
 class RateLimiter:
-    """Sliding-window IP rate limiter with injectable state."""
+    """Sliding-window IP rate limiter with bounded LRU client state."""
 
-    def __init__(self, window_seconds: float = RATE_LIMIT_WINDOW_SECONDS) -> None:
-        """Initialize RateLimiter with sliding-window duration."""
+    def __init__(
+        self,
+        window_seconds: float = RATE_LIMIT_WINDOW_SECONDS,
+        max_clients: int = 10_000,
+    ) -> None:
+        """Initialize RateLimiter with sliding-window duration and client cap."""
         self.window_seconds = window_seconds
-        self.timestamps: dict[str, list[float]] = defaultdict(list)
+        self.max_clients = max_clients
+        self.timestamps: OrderedDict[str, list[float]] = OrderedDict()
+
+    def _evict_if_full(self, now: float, client_ip: str) -> None:
+        """Prune expired IP entries and evict oldest entry if still at capacity."""
+        if client_ip in self.timestamps or len(self.timestamps) < self.max_clients:
+            return
+        expired = [
+            ip
+            for ip, stamps in self.timestamps.items()
+            if not stamps or now - stamps[-1] >= self.window_seconds
+        ]
+        for ip in expired:
+            del self.timestamps[ip]
+        while len(self.timestamps) >= self.max_clients:
+            self.timestamps.popitem(last=False)
 
     def is_allowed(self, client_ip: str, limit: int) -> bool:
         """Check whether client request is within sliding-window quota."""
         now = time.monotonic()
-        recent = [t for t in self.timestamps[client_ip] if now - t < self.window_seconds]
+        self._evict_if_full(now, client_ip)
+        recent = [t for t in self.timestamps.get(client_ip, []) if now - t < self.window_seconds]
         if len(recent) >= limit:
             self.timestamps[client_ip] = recent
+            self.timestamps.move_to_end(client_ip)
             return False
         recent.append(now)
         self.timestamps[client_ip] = recent
+        self.timestamps.move_to_end(client_ip)
         return True
 
     def clear(self) -> None:
@@ -50,7 +73,7 @@ __all__ = [
 ]
 
 CSP_HEADER_VALUE = (
-    "default-src 'self'; script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com; "
+    "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; "
     "connect-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; "
     "img-src 'self' data:; font-src 'self'; frame-ancestors 'none'; "
     "object-src 'none'; base-uri 'self'"
@@ -154,17 +177,20 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         """Process incoming request through security policies and attach tracking headers."""
         corr_id = self._extract_correlation_id(request)
         request.state.correlation_id = corr_id
+        token = correlation_id_var.set(corr_id)
+        try:
+            size_error = self._check_payload_size(request, corr_id)
+            if size_error is not None:
+                self._attach_security_headers(request, size_error, corr_id)
+                return size_error
 
-        size_error = self._check_payload_size(request, corr_id)
-        if size_error is not None:
-            self._attach_security_headers(request, size_error, corr_id)
-            return size_error
+            rate_error = self._check_rate_limit(request, corr_id)
+            if rate_error is not None:
+                self._attach_security_headers(request, rate_error, corr_id)
+                return rate_error
 
-        rate_error = self._check_rate_limit(request, corr_id)
-        if rate_error is not None:
-            self._attach_security_headers(request, rate_error, corr_id)
-            return rate_error
-
-        response = await call_next(request)
-        self._attach_security_headers(request, response, corr_id)
-        return response
+            response = await call_next(request)
+            self._attach_security_headers(request, response, corr_id)
+            return response
+        finally:
+            correlation_id_var.reset(token)

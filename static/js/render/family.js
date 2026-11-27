@@ -2,7 +2,7 @@
  * @fileoverview Screen 1: Family and Household Setup view renderer.
  */
 
-import { el } from '../dom.js';
+import { buildSelect, el } from '../dom.js';
 import { labelFor, t } from '../i18n.js';
 import { PRESET_CITIES, getState, setState } from '../state.js';
 import { renderHouseholdSummary } from './summary.js';
@@ -19,8 +19,6 @@ function field(id, labelText, control, helpText) {
   return f;
 }
 
-const opt = (val, text, sel = false) => Object.assign(document.createElement('option'), { value: val, textContent: text, selected: sel });
-
 /**
  * Render Family setup screen into target container.
  * @param {HTMLElement} container - DOM container element.
@@ -30,7 +28,8 @@ export function renderFamilyScreen(container) {
   container.replaceChildren();
   const s = getState(), lang = s.language;
   const layout = el('div', 'step-layout'), mainCol = el('div', 'step-main');
-  mainCol.append(el('h2', '', t('planningForTitle', lang)), el('p', 'member-counter', `${s.members.length} of 6 members`));
+  const countTxt = t('memberCount', lang).replace('{current}', String(s.members.length)).replace('{max}', '6');
+  mainCol.append(el('h2', '', t('planningForTitle', lang)), el('p', 'member-counter', countTxt));
 
   // Card 1: Who lives here
   const c1 = el('div', 'card'), memList = el('div', 'member-list');
@@ -63,15 +62,12 @@ export function renderFamilyScreen(container) {
     panel.hidden = true;
     panel.appendChild(el('h3', '', t('addMember', lang)));
     const nameIn = Object.assign(el('input'), { type: 'text', placeholder: 'e.g. Priyo' });
-    const ageSel = el('select'), sensSel = el('select');
-    ageSel.appendChild(Object.assign(opt('', 'Select age group', true), { disabled: true }));
-    sensSel.appendChild(Object.assign(opt('', 'Select health needs', true), { disabled: true }));
-    ['toddler', 'child', 'teen', 'adult', 'senior'].forEach((a) => ageSel.appendChild(opt(a, labelFor('ageGroup', a, lang))));
-    ['none', 'asthma_or_heart', 'pregnant'].forEach((k) => sensSel.appendChild(opt(k, labelFor('sensitivity', k, lang))));
+    const ageSel = buildSelect({}, [{ val: '', label: t('selectAgeGroup', lang), disabled: true }, ...['toddler', 'child', 'teen', 'adult', 'senior'].map((a) => ({ val: a, label: labelFor('ageGroup', a, lang) }))], '');
+    const sensSel = buildSelect({}, [{ val: '', label: t('selectHealthNeeds', lang), disabled: true }, ...['none', 'asthma_or_heart', 'pregnant'].map((k) => ({ val: k, label: labelFor('sensitivity', k, lang) }))], '');
     const errEl = Object.assign(el('p', 'form-error', ''), { id: 'new-member-error' });
     errEl.setAttribute('role', 'alert');
-    const saveBtn = Object.assign(el('button', 'btn primary btn-primary', 'Save Member'), { type: 'button' });
-    const cancelBtn = Object.assign(el('button', 'btn btn-secondary', 'Cancel'), { type: 'button' });
+    const saveBtn = Object.assign(el('button', 'btn primary btn-primary', t('saveMember', lang)), { type: 'button' });
+    const cancelBtn = Object.assign(el('button', 'btn btn-secondary', t('cancelBtn', lang)), { type: 'button' });
     const toggleAddView = (open) => {
       panel.hidden = !open; memList.hidden = open; openRow.hidden = open;
       hbGrid.hidden = open; actions.hidden = open;
@@ -82,15 +78,15 @@ export function renderFamilyScreen(container) {
     saveBtn.addEventListener('click', () => {
       const val = nameIn.value.trim();
       if (!val || !ageSel.value || !sensSel.value) {
-        errEl.textContent = 'Please enter name, age group, and health needs.';
+        errEl.textContent = t('memberFormError', lang);
         (!val ? nameIn : !ageSel.value ? ageSel : sensSel).focus();
         return;
       }
       setState({ members: [...s.members, { name: val, age_group: ageSel.value, sensitivity: sensSel.value, routine: JSON.parse(JSON.stringify(s.members[0].routine)) }] });
     });
     const r1 = el('div', 'field-row'), r2 = el('div', 'field-row'), btnRow = el('div', 'actions');
-    r1.append(field('new-member-name', t('memberName', lang), nameIn, 'Name or nickname'), field('new-member-age', t('ageGroup', lang), ageSel, 'Age category'));
-    r2.appendChild(field('new-member-sens', t('sensitivity', lang), sensSel, 'Respiratory health needs'));
+    r1.append(field('new-member-name', t('memberName', lang), nameIn, t('nameOrNickname', lang)), field('new-member-age', t('ageGroup', lang), ageSel, t('ageCategory', lang)));
+    r2.appendChild(field('new-member-sens', t('sensitivity', lang), sensSel, t('respiratoryNeeds', lang)));
     btnRow.append(cancelBtn, saveBtn);
     panel.append(r1, r2, errEl, btnRow);
     c1.append(openRow, panel);
@@ -99,15 +95,11 @@ export function renderFamilyScreen(container) {
 
   // Two open cards ("Your home" & "Your budget") in a two-column desktop grid
   const hbGrid = el('div', 'grid-2col');
-  const c2 = el('div', 'card'), leakSel = el('select'), citySel = el('select');
+  const c2 = el('div', 'card');
   c2.appendChild(el('h3', '', t('yourHome', lang)));
-  leakSel.appendChild(opt('', 'Select home leakiness', !s.homeSelected));
-  ['tight', 'average', 'leaky'].forEach((l) => leakSel.appendChild(opt(l, labelFor('leakiness', l, lang), Boolean(s.homeSelected && l === s.home.leakiness))));
-  leakSel.addEventListener('change', (e) => { if (e.target.value) setState({ homeSelected: true, home: { ...s.home, leakiness: e.target.value } }); });
-  citySel.appendChild(opt('', 'Select city', !s.citySelected));
-  Object.entries(PRESET_CITIES).forEach(([k, c]) => citySel.appendChild(opt(k, `${c.name} (${c.lat}, ${c.lon})`, Boolean(s.citySelected && k === s.city))));
-  citySel.addEventListener('change', (e) => { const d = PRESET_CITIES[e.target.value]; if (d) setState({ citySelected: true, city: e.target.value, latitude: d.lat, longitude: d.lon }); });
-  const homeRow = el('div', 'field-row');
+  const leakSel = buildSelect({}, [{ val: '', label: 'Select home leakiness' }, ...['tight', 'average', 'leaky'].map((l) => ({ val: l, label: labelFor('leakiness', l, lang) }))], s.homeSelected ? s.home.leakiness : '', (v) => { if (v) setState({ homeSelected: true, home: { ...s.home, leakiness: v } }); });
+  const citySel = buildSelect({}, [{ val: '', label: 'Select city' }, ...Object.entries(PRESET_CITIES).map(([k, c]) => ({ val: k, label: `${c.name} (${c.lat}, ${c.lon})` }))], s.citySelected ? s.city : '', (v) => { const d = PRESET_CITIES[v]; if (d) setState({ citySelected: true, city: v, latitude: d.lat, longitude: d.lon }); });
+  const homeRow = el('div', 'field');
   homeRow.append(field('home-leakiness-select', t('draughtyQuestion', lang), leakSel, 'Affects outdoor smoke infiltration'), field('city-preset-select', t('cityPreset', lang), citySel, 'Forecast location for smog calculations'));
 
   const pF = el('div', 'field'), pLbl = el('label', '', ` ${t('purifier', lang)}`);
@@ -120,24 +112,19 @@ export function renderFamilyScreen(container) {
   pF.append(pLbl, pHelp);
   c2.append(homeRow, pF);
 
-  const c3 = el('div', 'card'), bF = el('div', 'field'), bRow = el('div', 'field-row');
+  const c3 = el('div', 'card'), bF = el('div', 'field');
   c3.appendChild(el('h3', '', t('yourBudget', lang)));
-  const bLbl = Object.assign(el('label', '', s.budgetSelected ? `₹${s.budgetInr} per month` : 'Enter monthly budget (INR)'), { htmlFor: 'budget-slider', id: 'budget-amount-label' });
-  const bRange = Object.assign(el('input'), { type: 'range', id: 'budget-slider', min: '0', max: '20000', step: '100', value: String(s.budgetInr) });
+  const bLbl = Object.assign(el('label', '', s.budgetSelected ? `₹${s.budgetInr} per month` : 'Enter monthly budget (INR)'), { htmlFor: 'budget-number', id: 'budget-amount-label' });
   const bNum = Object.assign(el('input'), { type: 'number', id: 'budget-number', min: '0', max: '100000', placeholder: 'e.g. 500', value: s.budgetSelected ? String(s.budgetInr) : '' });
   const bHelp = Object.assign(el('small', 'help-text', t('budgetHelp', lang)), { id: 'budget-change-help' });
-  bRange.setAttribute('aria-describedby', bHelp.id);
   bNum.setAttribute('aria-describedby', bHelp.id);
-  const syncB = (raw, fromNum = false) => {
-    const v = Math.max(0, Math.min(100000, Number(raw) || 0));
-    bRange.value = String(Math.min(20000, v)); if (!fromNum) bNum.value = String(v);
+  bNum.addEventListener('input', (e) => {
+    const v = Math.max(0, Math.min(100000, Number(e.target.value) || 0));
     bLbl.textContent = `₹${v} per month`;
     const sumEl = document.getElementById('summary-budget-val'); if (sumEl) sumEl.textContent = `₹${v} / mo`;
     setState({ budgetSelected: true, budgetInr: v }, true);
-  };
-  bRange.addEventListener('input', (e) => syncB(e.target.value, false));
-  bNum.addEventListener('input', (e) => syncB(e.target.value, true));
-  bRow.append(bRange, bNum); bF.append(bLbl, bRow, bHelp); c3.append(bF);
+  });
+  bF.append(bLbl, bNum, bHelp); c3.append(bF);
   hbGrid.append(c2, c3); mainCol.appendChild(hbGrid);
   const actions = el('div', 'actions');
   actions.appendChild(Object.assign(el('button', 'btn primary btn-primary', t('nextYourDay', lang)), { type: 'button', id: 'next-to-ledger-btn' }));

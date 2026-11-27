@@ -37,6 +37,7 @@ target-version = "py311"
 select = [
     "E",   # pycodestyle errors
     "F",   # Pyflakes
+    "W",   # pycodestyle warnings
     "I",   # isort imports
     "B",   # flake8-bugbear
     "UP",  # pyupgrade
@@ -45,6 +46,8 @@ select = [
     "D",   # pydocstyle docstrings
     "ANN", # flake8-annotations
     "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "RET", # flake8-return
     "PL",  # Pylint
     "RUF", # Ruff-specific rules
 ]
@@ -53,8 +56,6 @@ ignore = [
     "D105",
     # D107: Missing docstring in __init__ because class-level docstring documents parameters
     "D107",
-    # PLR0913: Too many arguments in function definition (domain simulation requires physical boundary parameters)
-    "PLR0913",
     # S101: Use of assert detected (needed in pytest test suites)
     "S101",
 ]

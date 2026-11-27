@@ -16,6 +16,7 @@ from app.ai.validator import (
     substitute_payload,
     validate_assistant_output,
 )
+from app.context import get_correlation_id
 from app.engine.models import RedFlag
 from app.engine.safety_rules import detect_red_flags
 from app.errors import AIError
@@ -32,7 +33,11 @@ def _try_generate_and_validate(p: AssistantProvider, prompt: str) -> AssistantPa
             logger.info("Provider output failed validation; falling back to template.")
         return payload
     except (AIError, GenAIAPIError, RuntimeError, ValueError, KeyError, TimeoutError) as exc:
-        logger.warning("Provider call failed (%s); using fallback template.", exc)
+        logger.warning(
+            "Provider call failed [correlation_id=%s] (%s); using fallback template.",
+            get_correlation_id(),
+            exc,
+        )
         return None
 
 

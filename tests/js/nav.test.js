@@ -50,3 +50,4 @@ test('stepper tracks done, current, and upcoming states across screens', () => {
   assert.equal(byId['step-btn-2'].getAttribute('data-state'), 'done');
   assert.equal(byId['step-btn-3'].getAttribute('data-state'), 'current');
 });
+

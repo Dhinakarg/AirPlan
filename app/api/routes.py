@@ -26,6 +26,7 @@ from app.services.assistant_service import ask_assistant
 from app.services.community_service import get_community_summary, record_pledge
 from app.services.home_service import analyze_home_sources
 from app.services.plan_service import MemberPlanInput, create_clean_air_plan
+from app.services.service_models import PlanRequestParams, SimulationParams
 from app.services.simulate_service import run_simulation
 
 router = APIRouter(prefix="/api/v1")
@@ -54,16 +55,18 @@ def _to_member_inputs(members: list[FamilyMemberInput]) -> list[MemberPlanInput]
 def plan_endpoint(req: PlanRequest) -> PlanResponse:
     """Build personalized 24-hour clean-air exposure plan and recommendations."""
     return create_clean_air_plan(
-        members=_to_member_inputs(req.members),
-        home=req.home,
-        latitude=req.latitude,
-        longitude=req.longitude,
-        date=req.date,
-        budget_inr=req.budget_inr,
-        context=req.context,
-        language=req.language,
-        scenario=req.scenario,
-        commute_distance_km=req.commute_distance_km,
+        PlanRequestParams(
+            members=_to_member_inputs(req.members),
+            home=req.home,
+            latitude=req.latitude,
+            longitude=req.longitude,
+            date=req.date,
+            budget_inr=req.budget_inr,
+            context=req.context,
+            language=req.language,
+            scenario=req.scenario,
+            commute_distance_km=req.commute_distance_km,
+        )
     )
 
 
@@ -71,13 +74,15 @@ def plan_endpoint(req: PlanRequest) -> PlanResponse:
 def simulate_endpoint(req: SimulateRequest) -> RoutineComparison:
     """Simulate routine changes and evaluate particulate dose reductions."""
     return run_simulation(
-        base_routine=req.base_routine,
-        alt_routine=req.alt_routine,
-        home=req.home,
-        age_group=req.age_group,
-        latitude=req.latitude,
-        longitude=req.longitude,
-        date=req.date,
+        SimulationParams(
+            base_routine=req.base_routine,
+            alt_routine=req.alt_routine,
+            home=req.home,
+            age_group=req.age_group,
+            latitude=req.latitude,
+            longitude=req.longitude,
+            date=req.date,
+        )
     )
 
 

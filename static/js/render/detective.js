@@ -4,22 +4,14 @@
 
 import { announce, showError } from '../a11y.js';
 import { analyzeHome } from '../api.js';
-import { el } from '../dom.js';
+import { buildSelect, el } from '../dom.js';
 import { labelFor, t } from '../i18n.js';
 import { getState, setState } from '../state.js';
 
 function makeSelect(id, label, placeholder, group, options) {
-  const sel = el('select');
-  sel.id = id;
-  const defOpt = el('option', '', placeholder);
-  defOpt.value = '';
-  defOpt.selected = true;
-  sel.appendChild(defOpt);
-  options.forEach((o) => {
-    const opt = el('option', '', labelFor(group, o, getState().language));
-    opt.value = o;
-    sel.appendChild(opt);
-  });
+  const lang = getState().language;
+  const items = [{ val: '', label: placeholder }, ...options.map((o) => ({ val: o, label: labelFor(group, o, lang) }))];
+  const sel = buildSelect(id, items, '');
   const lbl = el('label', '', label);
   lbl.htmlFor = id;
   return [el('div', 'form-group', [lbl, sel]), sel];
@@ -48,6 +40,8 @@ function renderFindings(findings, lang) {
   return card;
 }
 
+import { buildToolNav } from './tool_nav.js';
+
 /**
  * Render Home Detective screen into container.
  * @param {HTMLElement} container - Target container.
@@ -56,7 +50,7 @@ function renderFindings(findings, lang) {
 export function renderDetectiveScreen(container) {
   container.replaceChildren();
   const s = getState(), lang = s.language;
-  container.appendChild(el('h3', '', t('detectiveTitle', lang)));
+  container.append(buildToolNav('screen-detective', lang), el('h3', '', t('detectiveTitle', lang)));
 
   const form = el('form', 'form-grid');
   form.noValidate = true;
@@ -105,6 +99,7 @@ export function renderDetectiveScreen(container) {
       showError('Please select cooking fuel, kitchen exhaust, and sweeping method.');
       return;
     }
+    showError(null);
     announce('Diagnosing indoor pollution sources...');
     try {
       const readVal = readIn.value ? Number(readIn.value) : null;

@@ -2,26 +2,21 @@
 
 from app.data.air_client import fetch_hourly_air
 from app.engine.exposure import compare_routines
-from app.engine.models import (
-    AgeGroup,
-    HomeProfile,
-    HourlyAir,
-    RoutineBlock,
-    RoutineComparison,
-)
+from app.engine.models import RoutineComparison
+from app.services.service_models import SimulationParams
 
 
-def run_simulation(
-    base_routine: list[RoutineBlock],
-    alt_routine: list[RoutineBlock],
-    home: HomeProfile,
-    *,
-    age_group: AgeGroup = AgeGroup.ADULT,
-    air: list[HourlyAir] | None = None,
-    latitude: float = 28.61,
-    longitude: float = 77.21,
-    date: str | None = None,
-) -> RoutineComparison:
+def run_simulation(params: SimulationParams) -> RoutineComparison:
     """Compare baseline routine against an optimized alternative routine."""
-    air_records = air if air is not None else fetch_hourly_air(latitude, longitude, date)
-    return compare_routines(base_routine, alt_routine, air_records, home, age_group)
+    air_records = (
+        params.air
+        if params.air is not None
+        else fetch_hourly_air(params.latitude, params.longitude, params.date)
+    )
+    return compare_routines(
+        params.base_routine,
+        params.alt_routine,
+        air_records,
+        params.home,
+        params.age_group,
+    )

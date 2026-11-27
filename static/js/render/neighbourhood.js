@@ -4,7 +4,7 @@
 
 import { announce, showError } from '../a11y.js';
 import { fetchCommunitySummary, submitPledge } from '../api.js';
-import { el } from '../dom.js';
+import { buildSelect, el } from '../dom.js';
 import { t } from '../i18n.js';
 import { getState, setState } from '../state.js';
 
@@ -37,6 +37,8 @@ function renderCommunityCards(container, summary, lang) {
   container.appendChild(wrap);
 }
 
+import { buildToolNav } from './tool_nav.js';
+
 /**
  * Render Neighbourhood Screen.
  *
@@ -46,7 +48,7 @@ function renderCommunityCards(container, summary, lang) {
 export function renderNeighbourhoodScreen(container) {
   container.replaceChildren();
   const s = getState(), lang = s.language;
-  container.appendChild(el('h3', '', t('neighbourhoodTitle', lang)));
+  container.append(buildToolNav('screen-neighbourhood', lang), el('h3', '', t('neighbourhoodTitle', lang)));
 
   const form = el('form', 'form-grid card');
   form.noValidate = true;
@@ -59,20 +61,13 @@ export function renderNeighbourhoodScreen(container) {
   form.appendChild(el('div', 'form-group', [areaLbl, areaIn]));
 
   // Action Select
-  const actSel = el('select');
-  actSel.id = 'pledge-action-select';
-  [
+  const actSel = buildSelect('pledge-action-select', [
     { id: '', label: 'Select pledge action' },
     { id: 'metro', label: 'Use Metro transit instead of car' },
     { id: 'carpool', label: 'Carpool with neighbours' },
     { id: 'no_waste_burning', label: 'No waste burning' },
     { id: 'combine_errands', label: 'Combine local errand trips' },
-  ].forEach((a, idx) => {
-    const opt = el('option', '', a.label);
-    opt.value = a.id;
-    if (idx === 0) opt.selected = true;
-    actSel.appendChild(opt);
-  });
+  ], '');
   const actLbl = el('label', '', t('pledgeAction', lang));
   actLbl.htmlFor = actSel.id;
   form.appendChild(el('div', 'form-group', [actLbl, actSel]));

@@ -44,7 +44,7 @@ class DocumentParser(HTMLParser):
         self._check_scripts_and_events(tag, attr_dict)
         self._check_table_elements(tag, attr_dict)
 
-    def _record_element_id_and_live(self, tag: str, attrs: dict[str, str | None]) -> None:
+    def _record_element_id_and_live(self, _tag: str, attrs: dict[str, str | None]) -> None:
         """Track ID uniqueness and live announcing regions."""
         if attrs.get("id"):
             self.all_ids.append(str(attrs["id"]))

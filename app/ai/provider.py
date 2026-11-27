@@ -19,8 +19,6 @@ class GenAIAPIError(Exception):
         self,
         code: int = 500,
         response_json: object = None,
-        *args: object,
-        **kwargs: object,
     ) -> None:
         """Initialize error with status code and response JSON."""
         super().__init__(f"APIError {code}: {response_json}")

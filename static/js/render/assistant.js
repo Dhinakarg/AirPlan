@@ -35,6 +35,8 @@ function renderAssistantResult(container, res, lang) {
   container.appendChild(resultBox);
 }
 
+import { buildToolNav } from './tool_nav.js';
+
 /**
  * Render Ask AirPlan Screen.
  *
@@ -44,7 +46,7 @@ function renderAssistantResult(container, res, lang) {
 export function renderAssistantScreen(container) {
   container.replaceChildren();
   const s = getState(), lang = s.language;
-  container.appendChild(el('h3', '', t('assistantTitle', lang)));
+  container.append(buildToolNav('screen-assistant', lang), el('h3', '', t('assistantTitle', lang)));
 
   const form = el('form', 'form-grid card');
   form.noValidate = true;

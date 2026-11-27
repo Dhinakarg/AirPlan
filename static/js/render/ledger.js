@@ -4,7 +4,7 @@
 
 import { announce, showError } from '../a11y.js';
 import { simulateRoutine } from '../api.js';
-import { el } from '../dom.js';
+import { buildSelect, el } from '../dom.js';
 import { t } from '../i18n.js';
 import { getState, setState } from '../state.js';
 import { SHORT_ACT, SHORT_MODE, analyzeRoutineCoverage, sortRoutine, summarizeRoutineText } from './ledger_helpers.js';
@@ -12,22 +12,6 @@ import { SHORT_ACT, SHORT_MODE, analyzeRoutineCoverage, sortRoutine, summarizeRo
 const ACTIVITIES = Object.keys(SHORT_ACT);
 const MODES = Object.keys(SHORT_MODE);
 const HOURS = Array.from({ length: 25 }, (_, i) => ({ val: String(i), label: `${i}:00` }));
-
-function makeSel(id, ariaLabel, options, currentVal, onChange) {
-  const sel = document.createElement('select');
-  sel.id = id;
-  sel.setAttribute('aria-label', ariaLabel);
-  options.forEach((o) => {
-    const opt = Object.assign(document.createElement('option'), {
-      value: typeof o === 'object' ? o.val : o,
-      textContent: typeof o === 'object' ? o.label : o,
-    });
-    if (opt.value === String(currentVal)) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  sel.addEventListener('change', (e) => onChange(e.target.value));
-  return sel;
-}
 
 function wrapField(lblText, sel) {
   const wrap = el('div', 'ledger-field');
@@ -46,10 +30,10 @@ function updateMemberRoutine(memberIdx, newRoutine) {
 function buildBlockRow(block, bIdx, routine, activeIdx) {
   const row = el('div', 'routine-block-row card');
   const patch = (key, val) => updateMemberRoutine(activeIdx, routine.map((b, i) => (i === bIdx ? { ...b, [key]: val } : b)));
-  const sSel = makeSel(`b-${bIdx}-s`, `Start ${bIdx + 1}`, HOURS, block.start_hour, (v) => patch('start_hour', Number(v)));
-  const eSel = makeSel(`b-${bIdx}-e`, `End ${bIdx + 1}`, HOURS, block.end_hour, (v) => patch('end_hour', Number(v)));
-  const aSel = makeSel(`b-${bIdx}-a`, `Activity ${bIdx + 1}`, ACTIVITIES.map((a) => ({ val: a, label: SHORT_ACT[a] })), block.activity, (v) => patch('activity', v));
-  const mSel = makeSel(`b-${bIdx}-m`, `Mode ${bIdx + 1}`, MODES.map((m) => ({ val: m, label: SHORT_MODE[m] })), block.mode, (v) => patch('mode', v));
+  const sSel = buildSelect({ id: `b-${bIdx}-s`, 'aria-label': `Start ${bIdx + 1}` }, HOURS, block.start_hour, (v) => patch('start_hour', Number(v)));
+  const eSel = buildSelect({ id: `b-${bIdx}-e`, 'aria-label': `End ${bIdx + 1}` }, HOURS, block.end_hour, (v) => patch('end_hour', Number(v)));
+  const aSel = buildSelect({ id: `b-${bIdx}-a`, 'aria-label': `Activity ${bIdx + 1}` }, ACTIVITIES.map((a) => ({ val: a, label: SHORT_ACT[a] })), block.activity, (v) => patch('activity', v));
+  const mSel = buildSelect({ id: `b-${bIdx}-m`, 'aria-label': `Mode ${bIdx + 1}` }, MODES.map((m) => ({ val: m, label: SHORT_MODE[m] })), block.mode, (v) => patch('mode', v));
   const rmBtn = Object.assign(el('button', 'btn ghost', '✕'), { type: 'button', disabled: routine.length <= 1 });
   rmBtn.setAttribute('aria-label', `Delete block ${bIdx + 1}`);
   rmBtn.addEventListener('click', () => updateMemberRoutine(activeIdx, routine.filter((_, i) => i !== bIdx)));
@@ -62,12 +46,14 @@ function buildDayStrip(routine) {
   strip.setAttribute('aria-hidden', 'true');
   routine.forEach((b) => {
     const dur = Math.max(1, b.end_hour - b.start_hour);
-    const seg = el('div', 'day-strip-seg', `${SHORT_ACT[b.activity] || b.activity} (${dur}h)`);
+    const act = SHORT_ACT[b.activity] || b.activity;
+    const label = dur >= 3 ? `${act} (${dur}h)` : `${dur}h`;
+    const seg = el('div', 'day-strip-seg', label);
+    seg.title = `${b.start_hour}:00–${b.end_hour}:00 ${act} (${dur}h)`;
     seg.style.flex = String(dur);
     strip.appendChild(seg);
   });
-  const textEq = el('p', 'help-text', summarizeRoutineText(routine));
-  return [strip, textEq];
+  return [strip, el('p', 'sr-only', summarizeRoutineText(routine))];
 }
 
 /**
@@ -85,15 +71,15 @@ export function renderLedgerScreen(container) {
   mainCol.append(el('h2', '', `${t('ledgerTitle', lang)} — ${cur.name}`), ...buildDayStrip(cur.routine));
 
   if (s.members.length > 1) {
-    const selRow = el('div', 'field'), selLabel = el('label', '', 'Planning for');
+    const selRow = el('div', 'field'), selLabel = el('label', '', t('planningFor', lang));
     selLabel.htmlFor = 'active-member-select';
-    const memSel = makeSel('active-member-select', 'Planning for', s.members.map((m, i) => ({ val: String(i), label: m.name })), String(activeIdx), (v) => setState({ activeMemberIndex: Number(v) }));
+    const memSel = buildSelect({ id: 'active-member-select', 'aria-label': t('planningFor', lang) }, s.members.map((m, i) => ({ val: String(i), label: m.name })), String(activeIdx), (v) => setState({ activeMemberIndex: Number(v) }));
     selRow.append(selLabel, memSel);
     mainCol.appendChild(selRow);
   }
 
   const hdrRow = el('div', 'routine-block-row ledger-col-headers form-label');
-  ['Start', 'End', 'Activity', 'Mode', ''].forEach((lbl) => hdrRow.appendChild(el('span', '', lbl)));
+  [t('colStart', lang), t('colEnd', lang), t('activity', lang), t('colMode', lang), ''].forEach((lbl) => hdrRow.appendChild(el('span', '', lbl)));
   const blocksList = el('div', 'blocks-list');
   blocksList.appendChild(hdrRow);
   cur.routine.forEach((b, i) => blocksList.appendChild(buildBlockRow(b, i, cur.routine, activeIdx)));
@@ -103,9 +89,9 @@ export function renderLedgerScreen(container) {
   msgEl.setAttribute('role', 'alert');
   const actionsRow = el('div', 'actions');
   if (cur.routine.length < 12) {
-    const addBtn = Object.assign(el('button', 'btn btn-secondary', '+ Add block'), { type: 'button' });
+    const addBtn = Object.assign(el('button', 'btn btn-secondary', t('addBlockShort', lang)), { type: 'button' });
     addBtn.addEventListener('click', () => {
-      if (cov.covered >= 24) { msgEl.textContent = 'All 24 hours are covered. Remove (✕) or shorten a slot first.'; return; }
+      if (cov.covered >= 24) { msgEl.textContent = t('ledgerFullError', lang); return; }
       updateMemberRoutine(activeIdx, [...cur.routine, { start_hour: cov.gapStart, end_hour: cov.gapEnd, activity: 'light', mode: 'home' }]);
     });
     actionsRow.appendChild(addBtn);
@@ -121,7 +107,7 @@ export function renderLedgerScreen(container) {
       announce(`Simulation: index reduced to ${sim.index_after}.`);
     } catch (err) { showError(err instanceof Error ? err.message : 'Simulation failed'); }
   });
-  const planBtn = Object.assign(el('button', 'btn primary btn-primary', 'Next: your plan →'), { type: 'button' });
+  const planBtn = Object.assign(el('button', 'btn primary btn-primary', t('nextYourPlan', lang)), { type: 'button' });
   planBtn.addEventListener('click', () => document.getElementById('step-btn-3')?.click());
   actionsRow.append(suggestBtn, planBtn);
   mainCol.append(msgEl, actionsRow);
@@ -133,11 +119,11 @@ export function renderLedgerScreen(container) {
   }
 
   const aside = el('aside', 'step-aside'), sumCard = el('div', 'card summary-card'), dl = el('dl', 'summary-list');
-  sumCard.appendChild(el('h3', '', 'Daily Schedule'));
+  sumCard.appendChild(el('h3', '', t('dailySchedule', lang)));
   const addItem = (dt, dd) => { const it = el('div', 'summary-item'); it.append(el('dt', '', dt), el('dd', '', dd)); dl.appendChild(it); };
-  addItem('Active member', cur.name);
-  addItem('Day coverage', cov.covered === 24 ? '24 / 24 hrs ✓' : `${cov.covered} / 24 hrs`);
-  addItem('Blocks', `${cur.routine.length} time slots`);
-  addItem('Outdoor exposure', `${cur.routine.filter((b) => b.mode === 'walk' || b.mode === 'outdoor').length} blocks`);
+  addItem(t('activeMember', lang), cur.name);
+  addItem(t('dayCoverage', lang), cov.covered === 24 ? '24 / 24 hrs ✓' : `${cov.covered} / 24 hrs`);
+  addItem(t('blocksLabel', lang), `${cur.routine.length} ${t('timeSlots', lang)}`);
+  addItem(t('outdoorExposure', lang), `${cur.routine.filter((b) => b.mode === 'walk' || b.mode === 'outdoor').length}`);
   sumCard.appendChild(dl); aside.appendChild(sumCard); layout.append(mainCol, aside); container.appendChild(layout);
 }
