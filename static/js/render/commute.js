@@ -74,3 +74,4 @@ export function renderCommuteTable(grid, cmp, lang) {
   card.append(wrap, det);
   grid.appendChild(card);
 }
+

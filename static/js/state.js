@@ -4,16 +4,15 @@
 
 import { clearSavedHousehold, loadSavedHousehold, saveHousehold } from './storage.js';
 
-/**
- * 5 Pre-configured cities facing seasonal northern Indian winter smog.
- * @type {Record<string, {name: string, lat: number, lon: number}>}
- */
 export const PRESET_CITIES = {
-  delhi: { name: 'Delhi (NCR)', lat: 28.61, lon: 77.21 },
-  gurugram: { name: 'Gurugram (Haryana)', lat: 28.46, lon: 77.03 },
-  noida: { name: 'Noida (UP)', lat: 28.53, lon: 77.39 },
-  lucknow: { name: 'Lucknow (UP)', lat: 26.85, lon: 80.95 },
-  patna: { name: 'Patna (Bihar)', lat: 25.59, lon: 85.14 },
+  delhi: { name: 'Delhi (NCR)', lat: 28.61, lon: 77.21 }, gurugram: { name: 'Gurugram (Haryana)', lat: 28.46, lon: 77.03 },
+  noida: { name: 'Noida (UP)', lat: 28.53, lon: 77.39 }, ghaziabad: { name: 'Ghaziabad (UP)', lat: 28.67, lon: 77.45 },
+  faridabad: { name: 'Faridabad (Haryana)', lat: 28.41, lon: 77.31 }, lucknow: { name: 'Lucknow (UP)', lat: 26.85, lon: 80.95 },
+  kanpur: { name: 'Kanpur (UP)', lat: 26.45, lon: 80.33 }, patna: { name: 'Patna (Bihar)', lat: 25.59, lon: 85.14 },
+  jaipur: { name: 'Jaipur (Rajasthan)', lat: 26.91, lon: 75.79 }, chandigarh: { name: 'Chandigarh', lat: 30.73, lon: 76.78 },
+  kolkata: { name: 'Kolkata (WB)', lat: 22.57, lon: 88.36 }, mumbai: { name: 'Mumbai (MH)', lat: 19.08, lon: 72.88 },
+  bengaluru: { name: 'Bengaluru (KA)', lat: 12.97, lon: 77.59 }, hyderabad: { name: 'Hyderabad (TS)', lat: 17.38, lon: 78.49 },
+  chennai: { name: 'Chennai (TN)', lat: 13.08, lon: 80.27 },
 };
 
 /**
@@ -45,6 +44,8 @@ function createInitialState() {
     latitude: saved?.latitude ?? 28.61,
     longitude: saved?.longitude ?? 77.21,
     budgetInr: saved?.budgetInr ?? 500,
+    homeSelected: Boolean(saved?.homeSelected), citySelected: Boolean(saved?.citySelected), budgetSelected: Boolean(saved?.budgetSelected),
+    homeBudgetOpen: false,
     scenario: 'live',
     commuteDistanceKm: 8.0,
     home: saved?.home || {
@@ -68,6 +69,9 @@ function createInitialState() {
     ],
     activeMemberIndex: 0,
     planResult: null,
+    planFingerprint: null,
+    selectedResultMember: null,
+    showTimelineTable: false,
     simulationResult: null,
     detectiveFindings: null,
     communitySummary: null,
@@ -93,11 +97,13 @@ export function getState() {
 /**
  * Update state slice and notify all registered subscribers.
  * @param {Record<string, any>} update - Partial state update.
+ * @param {boolean} [silent=false] - Skip subscriber re-render when updating in-place.
  * @returns {void}
  */
-export function setState(update) {
+export function setState(update, silent = false) {
   Object.assign(state, update);
   saveHousehold(state);
+  if (silent) return;
   subscribers.forEach((listener) => {
     try {
       listener(state);

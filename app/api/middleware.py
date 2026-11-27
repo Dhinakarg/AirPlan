@@ -113,7 +113,9 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         return request.client.host if request.client else "127.0.0.1"
 
     def _check_rate_limit(self, request: Request, corr_id: str) -> Response | None:
-        """Enforce per-IP sliding-window request throttling."""
+        """Enforce per-IP sliding-window request throttling on API endpoints."""
+        if request.url.path.startswith("/static"):
+            return None
         client_ip = self._resolve_client_ip(request)
         limit = get_settings().rate_limit_per_minute
 
@@ -141,6 +143,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
         if request.url.path.startswith("/api"):
             response.headers["Cache-Control"] = "no-store"
+        elif request.url.path.startswith("/static"):
+            response.headers["Cache-Control"] = "no-cache"
 
     async def dispatch(
         self,

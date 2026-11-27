@@ -42,7 +42,7 @@ test('render helpers: labelFor maps all domain enums cleanly in en and hi', () =
 
 test('render helpers: PRESET_CITIES contains valid latitudes and longitudes', () => {
   const cityKeys = Object.keys(PRESET_CITIES);
-  assert.equal(cityKeys.length, 5);
+  assert.equal(cityKeys.length, 15);
   cityKeys.forEach((k) => {
     const c = PRESET_CITIES[k];
     assert.ok(c.lat >= -90 && c.lat <= 90);

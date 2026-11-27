@@ -30,7 +30,7 @@ export const DICTIONARY = {
   enum_fuel_biomass: { en: 'Biomass / dung cakes', hi: 'बायोमास / उपले' }, enum_fuel_electric_coil: { en: 'Electric coil stove', hi: 'इलेक्ट्रिक कॉइल' },
   enum_fuel_induction: { en: 'Induction cooktop', hi: 'इंडक्शन चूल्हा' }, enum_fuel_lpg: { en: 'LPG gas stove', hi: 'एलपीजी गैस चूल्हा' },
   enum_fuel_wood: { en: 'Firewood', hi: 'लकड़ी' }, enum_leak_average: { en: 'Average', hi: 'औसत' },
-  enum_leak_leaky: { en: 'Draughty', hi: 'हवादार' }, enum_leak_tight: { en: 'Tight', hi: 'सील बंद' },
+  enum_leak_leaky: { en: 'Leaky (Draughty)', hi: 'हवादार' }, enum_leak_tight: { en: 'Tight', hi: 'सील बंद' },
   enum_mode_auto_rickshaw: { en: 'Auto rickshaw', hi: 'ऑटो रिक्शा' }, enum_mode_bus: { en: 'Public bus', hi: 'बस' },
   enum_mode_car: { en: 'Car (windows closed)', hi: 'कार (खिड़कियां बंद)' }, enum_mode_cycle: { en: 'Bicycle', hi: 'साइकिल' },
   enum_mode_home: { en: 'At Home', hi: 'घर पर' }, enum_mode_metro: { en: 'Metro train', hi: 'मेट्रो रेल' },

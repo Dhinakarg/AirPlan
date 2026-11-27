@@ -1,20 +1,34 @@
 /**
- * @fileoverview 24-hour particulate exposure SVG chart and accessible data table.
+ * @fileoverview 24-hour particulate exposure SVG chart and toggleable accessible data table.
  */
 
 import { el } from '../dom.js';
-import { formatConcentration, getAqiCategory } from '../i18n.js';
+import { formatConcentration, getAqiCategory, t } from '../i18n.js';
+import { getState, setState } from '../state.js';
 
 /**
- * Render 24-hour timeline SVG chart and paired data table into section.
+ * Render 24-hour timeline SVG chart and toggleable data table into section.
  *
  * @param {HTMLElement} sec - Target card element.
  * @param {Record<string, any> | undefined} memberExposure - Member DayExposure object.
+ * @param {string} [lang='en'] - Active UI language.
  * @returns {void}
  */
-export function renderTimelineInto(sec, memberExposure) {
+export function renderTimelineInto(sec, memberExposure, lang = 'en') {
   if (!memberExposure?.hours) return;
-  sec.appendChild(el('h3', '', '24-Hour Particulate Exposure Timeline'));
+  const s = getState();
+  const showTable = Boolean(s.showTimelineTable);
+
+  const hdr = el('div', 'flex-between');
+  hdr.appendChild(el('h3', '', t('timelineChart', lang)));
+  const toggleBtn = Object.assign(
+    el('button', 'btn btn-secondary', showTable ? t('viewAsChart', lang) : t('viewAsTable', lang)),
+    { type: 'button', id: 'toggle-timeline-table-btn' },
+  );
+  toggleBtn.setAttribute('aria-expanded', String(showTable));
+  toggleBtn.addEventListener('click', () => setState({ showTimelineTable: !showTable }));
+  hdr.appendChild(toggleBtn);
+  sec.appendChild(hdr);
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 480 160');
@@ -38,6 +52,7 @@ export function renderTimelineInto(sec, memberExposure) {
   sec.appendChild(svg);
 
   const wrap = el('div', 'table-container');
+  wrap.hidden = !showTable;
   const tbl = el('table');
   tbl.appendChild(el('caption', '', 'Hour-by-hour particulate exposure concentrations and AQI classifications'));
   const thead = el('thead');

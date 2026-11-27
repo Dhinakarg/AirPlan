@@ -53,7 +53,7 @@ export function renderNeighbourhoodScreen(container) {
 
   // Area Code
   const areaIn = el('input');
-  Object.assign(areaIn, { type: 'text', id: 'pledge-area-code', value: 'DL-01', pattern: '^[A-Z0-9-]{3,10}$' });
+  Object.assign(areaIn, { type: 'text', id: 'pledge-area-code', placeholder: 'e.g. DL-01', pattern: '^[A-Z0-9-]{3,10}$' });
   const areaLbl = el('label', '', t('areaCode', lang));
   areaLbl.htmlFor = areaIn.id;
   form.appendChild(el('div', 'form-group', [areaLbl, areaIn]));
@@ -62,13 +62,15 @@ export function renderNeighbourhoodScreen(container) {
   const actSel = el('select');
   actSel.id = 'pledge-action-select';
   [
+    { id: '', label: 'Select pledge action' },
     { id: 'metro', label: 'Use Metro transit instead of car' },
     { id: 'carpool', label: 'Carpool with neighbours' },
-    { id: 'no_waste_burning', label: 'Report and halt open waste burning' },
+    { id: 'no_waste_burning', label: 'No waste burning' },
     { id: 'combine_errands', label: 'Combine local errand trips' },
-  ].forEach((a) => {
+  ].forEach((a, idx) => {
     const opt = el('option', '', a.label);
     opt.value = a.id;
+    if (idx === 0) opt.selected = true;
     actSel.appendChild(opt);
   });
   const actLbl = el('label', '', t('pledgeAction', lang));
@@ -77,7 +79,7 @@ export function renderNeighbourhoodScreen(container) {
 
   // Count
   const countIn = el('input');
-  Object.assign(countIn, { type: 'number', id: 'pledge-count-input', min: '1', max: '100', value: '5' });
+  Object.assign(countIn, { type: 'number', id: 'pledge-count-input', min: '1', max: '100', placeholder: 'e.g. 5' });
   const countLbl = el('label', '', t('pledgeCount', lang));
   countLbl.htmlFor = countIn.id;
   form.appendChild(el('div', 'form-group', [countLbl, countIn]));
@@ -89,13 +91,18 @@ export function renderNeighbourhoodScreen(container) {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const code = areaIn.value.trim().toUpperCase();
+    const cnt = Number(countIn.value);
+    if (!code || !actSel.value || !cnt) {
+      showError('Please enter area code, pledge action, and days/trips.');
+      return;
+    }
     announce('Submitting community action pledge...');
     try {
-      const code = areaIn.value.trim().toUpperCase();
       await submitPledge({
         area_code: code,
         action: actSel.value,
-        count: Number(countIn.value) || 1,
+        count: cnt,
       });
       const summary = await fetchCommunitySummary(code);
       setState({ communitySummary: summary });

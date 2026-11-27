@@ -52,7 +52,7 @@
   "enum_fuel_lpg": "LPG gas stove",
   "enum_fuel_wood": "Firewood",
   "enum_leak_average": "Average",
-  "enum_leak_leaky": "Draughty",
+  "enum_leak_leaky": "Leaky (Draughty)",
   "enum_leak_tight": "Tight",
   "enum_mode_auto_rickshaw": "Auto rickshaw",
   "enum_mode_bus": "Public bus",

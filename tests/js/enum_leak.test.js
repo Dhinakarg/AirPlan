@@ -64,7 +64,7 @@ test('labelFor helper: resolves display labels without raw underscore enum keys'
     ['sensitivity', 'none', 'Standard health'],
     ['leakiness', 'tight', 'Tight'],
     ['leakiness', 'average', 'Average'],
-    ['leakiness', 'leaky', 'Draughty'],
+    ['leakiness', 'leaky', 'Leaky (Draughty)'],
     ['activity', 'exercise', 'Vigorous exercise'],
     ['mode', 'auto_rickshaw', 'Auto rickshaw'],
     ['cookingFuel', 'electric_coil', 'Electric coil stove'],

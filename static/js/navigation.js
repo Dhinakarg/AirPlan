@@ -3,7 +3,8 @@
  */
 
 import { announce, isSpeechSupported, setTextSize, speakText, stopSpeaking, toggleHighContrast, toggleSimpleLanguage } from './a11y.js';
-import { getState, setState } from './state.js';
+import { ensurePlanGenerated } from './render/results.js';
+import { DEFAULT_ROUTINE, getState, setState } from './state.js';
 
 /**
  * Switch the currently visible view section and synchronize navigation states.
@@ -24,6 +25,16 @@ export function switchScreen(screenId) {
       else btn.removeAttribute('aria-current');
     }
   });
+  const subMap = { 'screen-detective': 'subnav-detective-btn', 'screen-neighbourhood': 'subnav-neighbourhood-btn', 'screen-assistant': 'subnav-assistant-btn' };
+  Object.values(subMap).forEach((btnId) => {
+    document.getElementById(btnId)?.classList.toggle('active-sub', subMap[screenId] === btnId);
+  });
+  if (typeof window !== 'undefined' && window.scrollTo) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  if (screenId === 'screen-results') {
+    ensurePlanGenerated();
+  }
 }
 
 /**
@@ -78,12 +89,22 @@ export function bindHeaderControls(onLabelChange) {
   const hero = document.getElementById('hero-banner');
   document.getElementById('hero-demo-btn')?.addEventListener('click', () => {
     if (hero) hero.hidden = true;
-    setState({ isDemoData: true });
+    setState({
+      city: 'delhi', latitude: 28.61, longitude: 77.21, budgetInr: 800,
+      home: { leakiness: 'average', purifier: false, windows_open_hours: [13, 14] },
+      homeSelected: true, citySelected: true, budgetSelected: true,
+      scenario: 'moderate', isDemoData: true, planFingerprint: null,
+      members: [
+        { name: 'Aarav', age_group: 'child', sensitivity: 'asthma_or_heart', routine: JSON.parse(JSON.stringify(DEFAULT_ROUTINE)) },
+        { name: 'Sunita', age_group: 'adult', sensitivity: 'none', routine: JSON.parse(JSON.stringify(DEFAULT_ROUTINE)) },
+      ],
+    });
     switchScreen('screen-results');
   });
   document.getElementById('hero-setup-btn')?.addEventListener('click', () => {
     if (hero) hero.hidden = true;
     switchScreen('screen-family');
+    document.getElementById('open-add-member-btn')?.focus();
   });
 
   const dlg = document.getElementById('settings-dialog');

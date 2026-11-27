@@ -5,14 +5,18 @@
 import { announce, showError } from '../a11y.js';
 import { analyzeHome } from '../api.js';
 import { el } from '../dom.js';
-import { t } from '../i18n.js';
+import { labelFor, t } from '../i18n.js';
 import { getState, setState } from '../state.js';
 
-function makeSelect(id, label, options) {
+function makeSelect(id, label, placeholder, group, options) {
   const sel = el('select');
   sel.id = id;
+  const defOpt = el('option', '', placeholder);
+  defOpt.value = '';
+  defOpt.selected = true;
+  sel.appendChild(defOpt);
   options.forEach((o) => {
-    const opt = el('option', '', o);
+    const opt = el('option', '', labelFor(group, o, getState().language));
     opt.value = o;
     sel.appendChild(opt);
   });
@@ -57,15 +61,15 @@ export function renderDetectiveScreen(container) {
   const form = el('form', 'form-grid');
   form.noValidate = true;
 
-  const [fuelRow, fuelSel] = makeSelect('detective-fuel', t('cookingFuel', lang), ['lpg', 'biomass', 'kerosene', 'induction', 'electric_coil']);
-  const [exhRow, exhSel] = makeSelect('detective-exhaust', t('kitchenExhaust', lang), ['none', 'internal', 'vented']);
-  const [swRow, sweepSel] = makeSelect('detective-sweeping', t('sweeping', lang), ['dry', 'wet']);
+  const [fuelRow, fuelSel] = makeSelect('detective-fuel', t('cookingFuel', lang), 'Select cooking fuel', 'cookingFuel', ['lpg', 'wood', 'biomass', 'induction', 'electric_coil']);
+  const [exhRow, exhSel] = makeSelect('detective-exhaust', t('kitchenExhaust', lang), 'Select kitchen exhaust', 'kitchenExhaust', ['none', 'internal', 'vented']);
+  const [swRow, sweepSel] = makeSelect('detective-sweeping', t('sweeping', lang), 'Select sweeping method', 'sweeping', ['dry', 'wet']);
   form.append(fuelRow, exhRow, swRow);
 
   const chkGroup = el('div', 'form-group');
   const chkItems = [
-    { id: 'det-incense', label: t('incense', lang), default: true },
-    { id: 'det-coil', label: t('mosquitoCoil', lang), default: true },
+    { id: 'det-incense', label: t('incense', lang), default: false },
+    { id: 'det-coil', label: t('mosquitoCoil', lang), default: false },
     { id: 'det-smokers', label: t('smokers', lang), default: false },
     { id: 'det-pets', label: t('pets', lang), default: false },
   ];
@@ -97,6 +101,10 @@ export function renderDetectiveScreen(container) {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!fuelSel.value || !exhSel.value || !sweepSel.value) {
+      showError('Please select cooking fuel, kitchen exhaust, and sweeping method.');
+      return;
+    }
     announce('Diagnosing indoor pollution sources...');
     try {
       const readVal = readIn.value ? Number(readIn.value) : null;

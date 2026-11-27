@@ -88,15 +88,20 @@ export function renderAssistantScreen(container) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const q = qIn.value.trim();
-    if (!q) return;
+    if (!q) {
+      showError('Please enter a question.');
+      qIn.focus();
+      return;
+    }
 
     announce('Consulting clean-air assistant...');
     try {
+      const firstExp = Object.values(s.planResult?.members_exposure || {})[0];
       const facts = s.planResult
         ? {
             window_start: s.planResult.ventilation_window?.start_hour || 13,
             window_end: s.planResult.ventilation_window?.end_hour || 15,
-            index_after: 70,
+            index_after: firstExp ? firstExp.index : 70,
           }
         : {};
       const res = await askAssistant(q, facts, lang);

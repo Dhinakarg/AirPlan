@@ -5,6 +5,7 @@
 import { el } from '../dom.js';
 import { labelFor, t } from '../i18n.js';
 import { PRESET_CITIES, getState, setState } from '../state.js';
+import { renderHouseholdSummary } from './summary.js';
 
 function field(id, labelText, control, helpText) {
   const f = el('div', 'field'), lbl = el('label', '', labelText);
@@ -19,24 +20,6 @@ function field(id, labelText, control, helpText) {
 }
 
 const opt = (val, text, sel = false) => Object.assign(document.createElement('option'), { value: val, textContent: text, selected: sel });
-
-function renderHouseholdSummary(s, lang) {
-  const aside = el('aside', 'step-aside'), sumCard = el('div', 'card summary-card'), dl = el('dl', 'summary-list');
-  sumCard.appendChild(el('h3', '', t('yourHousehold', lang)));
-  [
-    ['Members', `${s.members.length} of 6`],
-    ['Home type', labelFor('leakiness', s.home.leakiness, lang)],
-    ['City', PRESET_CITIES[s.city]?.name.split(' (')[0] || s.city],
-    ['Budget', `₹${s.budgetInr} / mo`],
-  ].forEach(([dt, dd]) => {
-    const it = el('div', 'summary-item');
-    it.append(el('dt', '', dt), el('dd', '', dd));
-    dl.appendChild(it);
-  });
-  sumCard.append(dl, el('p', 'summary-hint', t('hintNextRoutine', lang)));
-  aside.appendChild(sumCard);
-  return aside;
-}
 
 /**
  * Render Family setup screen into target container.
@@ -61,12 +44,10 @@ export function renderFamilyScreen(container) {
     info.append(av, det);
     card.appendChild(info);
     if (s.members.length > 1) {
-      const rm = el('button', 'ghost', t('removeMember', lang));
-      rm.type = 'button';
+      const rm = Object.assign(el('button', 'ghost', t('removeMember', lang)), { type: 'button' });
       rm.setAttribute('aria-label', `Remove ${m.name}`);
       rm.addEventListener('click', () => {
-        const next = [...s.members];
-        next.splice(idx, 1);
+        const next = s.members.filter((_, i) => i !== idx);
         setState({ members: next, activeMemberIndex: 0 });
       });
       card.appendChild(rm);
@@ -76,33 +57,58 @@ export function renderFamilyScreen(container) {
   c1.appendChild(memList);
 
   if (s.members.length < 6) {
+    const openBtn = Object.assign(el('button', 'btn btn-secondary', `+ ${t('addMember', lang)}`), { type: 'button', id: 'open-add-member-btn' });
+    const openRow = el('div', 'actions'); openRow.appendChild(openBtn);
+    const panel = el('div', 'add-member-panel');
+    panel.hidden = true;
+    panel.appendChild(el('h3', '', t('addMember', lang)));
     const nameIn = Object.assign(el('input'), { type: 'text', placeholder: 'e.g. Priyo' });
     const ageSel = el('select'), sensSel = el('select');
-    ['toddler', 'child', 'teen', 'adult', 'senior'].forEach((a) => ageSel.appendChild(opt(a, labelFor('ageGroup', a, lang), a === 'adult')));
+    ageSel.appendChild(Object.assign(opt('', 'Select age group', true), { disabled: true }));
+    sensSel.appendChild(Object.assign(opt('', 'Select health needs', true), { disabled: true }));
+    ['toddler', 'child', 'teen', 'adult', 'senior'].forEach((a) => ageSel.appendChild(opt(a, labelFor('ageGroup', a, lang))));
     ['none', 'asthma_or_heart', 'pregnant'].forEach((k) => sensSel.appendChild(opt(k, labelFor('sensitivity', k, lang))));
-    const addBtn = Object.assign(el('button', 'btn btn-secondary', `+ ${t('addMember', lang)}`), { type: 'button' });
-    addBtn.addEventListener('click', () => {
-      const val = nameIn.value.trim() || `Member ${s.members.length + 1}`;
+    const errEl = Object.assign(el('p', 'form-error', ''), { id: 'new-member-error' });
+    errEl.setAttribute('role', 'alert');
+    const saveBtn = Object.assign(el('button', 'btn primary btn-primary', 'Save Member'), { type: 'button' });
+    const cancelBtn = Object.assign(el('button', 'btn btn-secondary', 'Cancel'), { type: 'button' });
+    const toggleAddView = (open) => {
+      panel.hidden = !open; memList.hidden = open; openRow.hidden = open;
+      hbDetails.hidden = open; actions.hidden = open;
+      if (open) nameIn.focus(); else errEl.textContent = '';
+    };
+    openBtn.addEventListener('click', () => toggleAddView(true));
+    cancelBtn.addEventListener('click', () => toggleAddView(false));
+    saveBtn.addEventListener('click', () => {
+      const val = nameIn.value.trim();
+      if (!val || !ageSel.value || !sensSel.value) {
+        errEl.textContent = 'Please enter name, age group, and health needs.';
+        (!val ? nameIn : !ageSel.value ? ageSel : sensSel).focus();
+        return;
+      }
       setState({ members: [...s.members, { name: val, age_group: ageSel.value, sensitivity: sensSel.value, routine: JSON.parse(JSON.stringify(s.members[0].routine)) }] });
     });
-    const r1 = el('div', 'field-row'), r2 = el('div', 'field-row'), wrap = el('div', 'field');
+    const r1 = el('div', 'field-row'), r2 = el('div', 'field-row'), btnRow = el('div', 'actions');
     r1.append(field('new-member-name', t('memberName', lang), nameIn, 'Name or nickname'), field('new-member-age', t('ageGroup', lang), ageSel, 'Age category'));
-    wrap.appendChild(addBtn);
-    r2.append(field('new-member-sens', t('sensitivity', lang), sensSel, 'Respiratory health needs'), wrap);
-    c1.append(r1, r2);
+    r2.appendChild(field('new-member-sens', t('sensitivity', lang), sensSel, 'Respiratory health needs'));
+    btnRow.append(cancelBtn, saveBtn);
+    panel.append(r1, r2, errEl, btnRow);
+    c1.append(openRow, panel);
   }
   mainCol.appendChild(c1);
 
-  // Card 2: Your home
-  const c2 = el('div', 'card'), leakSel = el('select'), citySel = el('select');
+  // Collapsible Home & Budget section (keeps landing view focused on household members)
+  const hbDetails = Object.assign(el('details', 'card'), { id: 'home-budget-details', open: Boolean(s.homeBudgetOpen) });
+  hbDetails.addEventListener('toggle', () => setState({ homeBudgetOpen: hbDetails.open }, true));
+  hbDetails.appendChild(el('summary', 'card-title', `🏠 ${t('yourHome', lang)} & ${t('yourBudget', lang)}`));
+  const c2 = el('div', 'field'), leakSel = el('select'), citySel = el('select');
   c2.appendChild(el('h3', '', t('yourHome', lang)));
-  ['tight', 'average', 'leaky'].forEach((l) => leakSel.appendChild(opt(l, labelFor('leakiness', l, lang), l === s.home.leakiness)));
-  leakSel.addEventListener('change', (e) => setState({ home: { ...s.home, leakiness: e.target.value } }));
-  Object.entries(PRESET_CITIES).forEach(([k, c]) => citySel.appendChild(opt(k, `${c.name} (${c.lat}, ${c.lon})`, k === s.city)));
-  citySel.addEventListener('change', (e) => {
-    const d = PRESET_CITIES[e.target.value];
-    if (d) setState({ city: e.target.value, latitude: d.lat, longitude: d.lon });
-  });
+  leakSel.appendChild(opt('', 'Select home leakiness', !s.homeSelected));
+  ['tight', 'average', 'leaky'].forEach((l) => leakSel.appendChild(opt(l, labelFor('leakiness', l, lang), Boolean(s.homeSelected && l === s.home.leakiness))));
+  leakSel.addEventListener('change', (e) => { if (e.target.value) setState({ homeSelected: true, home: { ...s.home, leakiness: e.target.value } }); });
+  citySel.appendChild(opt('', 'Select city', !s.citySelected));
+  Object.entries(PRESET_CITIES).forEach(([k, c]) => citySel.appendChild(opt(k, `${c.name} (${c.lat}, ${c.lon})`, Boolean(s.citySelected && k === s.city))));
+  citySel.addEventListener('change', (e) => { const d = PRESET_CITIES[e.target.value]; if (d) setState({ citySelected: true, city: e.target.value, latitude: d.lat, longitude: d.lon }); });
   const homeRow = el('div', 'field-row');
   homeRow.append(field('home-leakiness-select', t('draughtyQuestion', lang), leakSel, 'Affects outdoor smoke infiltration'), field('city-preset-select', t('cityPreset', lang), citySel, 'Forecast location for smog calculations'));
 
@@ -115,35 +121,27 @@ export function renderFamilyScreen(container) {
   pChk.setAttribute('aria-describedby', pHelp.id);
   pF.append(pLbl, pHelp);
   c2.append(homeRow, pF);
-  mainCol.appendChild(c2);
 
-  // Card 3: Your budget
-  const c3 = el('div', 'card'), bF = el('div', 'field'), bRow = el('div', 'field-row');
+  const c3 = el('div', 'field'), bF = el('div', 'field'), bRow = el('div', 'field-row');
   c3.appendChild(el('h3', '', t('yourBudget', lang)));
-  const bLbl = Object.assign(el('label', '', `₹${s.budgetInr} per month`), { htmlFor: 'budget-slider', id: 'budget-amount-label' });
+  const bLbl = Object.assign(el('label', '', s.budgetSelected ? `₹${s.budgetInr} per month` : 'Enter monthly budget (INR)'), { htmlFor: 'budget-slider', id: 'budget-amount-label' });
   const bRange = Object.assign(el('input'), { type: 'range', id: 'budget-slider', min: '0', max: '20000', step: '100', value: String(s.budgetInr) });
-  const bNum = Object.assign(el('input'), { type: 'number', id: 'budget-number', min: '0', max: '100000', value: String(s.budgetInr) });
+  const bNum = Object.assign(el('input'), { type: 'number', id: 'budget-number', min: '0', max: '100000', placeholder: 'e.g. 500', value: s.budgetSelected ? String(s.budgetInr) : '' });
   const bHelp = Object.assign(el('small', 'help-text', t('budgetHelp', lang)), { id: 'budget-change-help' });
   bRange.setAttribute('aria-describedby', bHelp.id);
   bNum.setAttribute('aria-describedby', bHelp.id);
-  const syncB = (v) => {
-    bRange.value = String(Math.min(20000, v));
-    bNum.value = String(v);
+  const syncB = (raw, fromNum = false) => {
+    const v = Math.max(0, Math.min(100000, Number(raw) || 0));
+    bRange.value = String(Math.min(20000, v)); if (!fromNum) bNum.value = String(v);
     bLbl.textContent = `₹${v} per month`;
-    setState({ budgetInr: v });
+    const sumEl = document.getElementById('summary-budget-val'); if (sumEl) sumEl.textContent = `₹${v} / mo`;
+    setState({ budgetSelected: true, budgetInr: v }, true);
   };
-  bRange.addEventListener('input', (e) => syncB(Number(e.target.value)));
-  bNum.addEventListener('input', (e) => syncB(Number(e.target.value) || 0));
-  bRow.append(bRange, bNum);
-  bF.append(bLbl, bRow, bHelp);
-  c3.append(bF);
-  mainCol.appendChild(c3);
-
-  // Actions row
+  bRange.addEventListener('input', (e) => syncB(e.target.value, false));
+  bNum.addEventListener('input', (e) => syncB(e.target.value, true));
+  bRow.append(bRange, bNum); bF.append(bLbl, bRow, bHelp); c3.append(bF);
+  hbDetails.append(c2, c3); mainCol.appendChild(hbDetails);
   const actions = el('div', 'actions');
   actions.appendChild(Object.assign(el('button', 'btn primary btn-primary', t('nextYourDay', lang)), { type: 'button', id: 'next-to-ledger-btn' }));
-  mainCol.append(actions);
-
-  layout.append(mainCol, renderHouseholdSummary(s, lang));
-  container.appendChild(layout);
+  mainCol.append(actions); layout.append(mainCol, renderHouseholdSummary(s, lang)); container.appendChild(layout);
 }

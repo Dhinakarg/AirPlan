@@ -101,9 +101,7 @@
 
 /* Secondary Navigation */
 .secondary-nav {
-  margin-top: var(--space-6);
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--border-card);
+  margin: var(--space-2) 0 var(--space-4);
 }
 
 .secondary-nav-title {

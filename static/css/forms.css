@@ -22,6 +22,12 @@
 .field input[type="text"],
 .field input[type="number"],
 .field select,
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea,
+.routine-block-row select,
+.scenario-bar select,
 .form-select {
   width: 100%;
   min-height: var(--target-min);
@@ -31,13 +37,25 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scenario-bar select {
+  width: auto;
+  min-width: 220px;
 }
 
 .field input:focus,
 .field select:focus,
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.routine-block-row select:focus,
+.scenario-bar select:focus,
 .form-select:focus {
   outline: var(--focus-ring);
   outline-offset: 2px;
+  border-color: var(--color-accent);
 }
 
 .help-text {
@@ -73,5 +91,52 @@ input[type="checkbox"] {
   justify-content: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+.add-member-panel {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.actions[hidden],
+.add-member-panel[hidden] {
+  display: none;
+}
+
+/* Day Ledger Routine Grid */
+.blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.routine-block-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr 1.4fr auto;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  cursor: pointer;
+}
+
+.scenario-bar {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .routine-block-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
