@@ -27,7 +27,7 @@ AirPlan separates **deterministic physical exposure modeling** from **guarded ge
 
 ```mermaid
 flowchart LR
-    UI["Vanilla ES Modules UI<br/>(19 JS modules, 12 CSS files)"] --> API["FastAPI + SecurityMiddleware"]
+    UI["Vanilla ES Modules UI<br/>(23 JS modules, 12 CSS files)"] --> API["FastAPI + SecurityMiddleware"]
     API --> Data["Open-Meteo Client + AirCache<br/>(falls back to realistic sample data)"]
     API --> Engine["Pure Python Physics Engine<br/>(Exposure, Ventilation, Commute, Ranking)"]
     Engine --> Facts["Verified Ground-Truth Metrics"]
@@ -199,7 +199,7 @@ AirPlan is **built to WCAG 2.1 AA, audited with Lighthouse** (100% Accessibility
 
 * Full English and Hindi (`en` / `hi`) UI parity, plain-language toggle, and screen-reader `aria-live` announcements.
 * Light, Dark (`prefers-color-scheme: dark`), High-Contrast ($\ge 7:1$ text), and Windows `forced-colors: active` themes.
-* Keyboard-first navigation, skip link, $\ge 44\,\text{px}$ interactive targets, $\ge 14\,\text{px}$ body typography, multi-attribute AQI indicators (color + icon + text pattern), and print stylesheet (`print.css`).
+* Keyboard-first navigation, skip link, $\ge 44\,\text{px}$ interactive targets, $16\,\text{px}$ base typography, multi-attribute AQI indicators (color + icon + text pattern), and print stylesheet (`print.css`).
 
 ---
 
